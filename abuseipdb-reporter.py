@@ -4,6 +4,7 @@ import json
 import sys
 import argparse
 import socket
+import re
 
 # Set the DEBUG variable here (True or False)
 # True doesn't send to AbuseIPDB. Only logs to file
@@ -17,7 +18,7 @@ DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'
 # Set privacy masks
 hostname = socket.gethostname()
 full_hostname = socket.getfqdn()
-short_hostname = socket.gethostbyname(hostname)
+short_hostname = socket.gethostname()
 
 # Define dummy mask hostname and IP
 mask_hostname = "MASKED_HOSTNAME"
@@ -60,10 +61,15 @@ inOut = args.arguments[3]
 message = args.arguments[5]
 logs = args.arguments[6]
 trigger = args.arguments[7]
-comment = message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + logs
+
+# Mask sensitive information in logs
+masked_logs = re.sub(r'\b{}\b'.format(short_hostname), mask_hostname, logs).replace(full_hostname, mask_hostname).replace(socket.getfqdn().split('.')[0], mask_hostname)
+
+# Update the comment string to use the masked_logs
+comment = message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + masked_logs
 
 # Mask sensitive information
-masked_comment = comment.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(public_ip, mask_ip)
+masked_comment = comment.replace(public_ip, mask_ip).replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname)
 
 headers = {
      'Accept': 'application/json',
