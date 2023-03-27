@@ -62,14 +62,43 @@ message = args.arguments[5]
 logs = args.arguments[6]
 trigger = args.arguments[7]
 
-# Mask sensitive information in logs
-masked_logs = re.sub(r'\b{}\b'.format(short_hostname), mask_hostname, logs).replace(full_hostname, mask_hostname).replace(socket.getfqdn().split('.')[0], mask_hostname)
+# Get the values from the csf.conf file
+with open('/etc/csf/csf.conf') as f:
+    csf_conf = f.read()
 
-# Update the comment string to use the masked_logs
-comment = message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + masked_logs
+# Use non-greedy matching to capture the IP addresses in the config file
+cluster_sendto = re.search(r'CLUSTER_SENDTO\s*=\s*(.*?)\n', csf_conf, re.DOTALL)
+cluster_recvfrom = re.search(r'CLUSTER_RECVFROM\s*=\s*(.*?)\n', csf_conf, re.DOTALL)
+cluster_master = re.search(r'CLUSTER_MASTER\s*=\s*(.*?)\n', csf_conf, re.DOTALL)
 
-# Mask sensitive information
-masked_comment = comment.replace(public_ip, mask_ip).replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname)
+if cluster_sendto:
+    # Split the IP addresses by comma and remove any empty strings
+    sendto_ips = [ip.strip() for ip in cluster_sendto.group(1).split(',') if ip.strip()]
+else:
+    sendto_ips = []
+
+if cluster_recvfrom:
+    recvfrom_ips = [ip.strip() for ip in cluster_recvfrom.group(1).split(',') if ip.strip()]
+else:
+    recvfrom_ips = []
+
+if cluster_master:
+    master_ips = [ip.strip() for ip in cluster_master.group(1).split(',') if ip.strip()]
+else:
+    master_ips = []
+
+# Mask sensitive information in logs and the comment string
+masked_logs = logs.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(socket.getfqdn().split('.')[0], mask_hostname)
+
+# Replace IP addresses in the message string with the mask IP
+ip_pattern = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
+masked_message = ip_pattern.sub(mask_ip, message)
+
+# Create the comment string
+comment = masked_message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + masked_logs
+
+# Replace sensitive information in the comment string with the masked values
+masked_comment = comment.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(args.arguments[0], mask_ip)
 
 headers = {
      'Accept': 'application/json',
