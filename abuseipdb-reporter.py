@@ -82,6 +82,12 @@ if 'LF_SSHD' in trigger:
     categories = '22'
 elif 'LF_DISTATTACK' in trigger:
     categories = '4'
+elif 'LF_SMTPAUTH' in trigger:
+    categories = '18'
+elif 'LF_FTPD' in trigger:
+    categories = '5'
+elif 'LF_MODSEC' in trigger:
+    categories = '21'
 
 querystring = {
     'ip': args.arguments[0],
