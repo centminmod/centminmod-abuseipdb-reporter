@@ -4,8 +4,14 @@ Based on CSF Firewall and AbuseIPDB integration guide at https://www.abuseipdb.c
 
 ## Dependencies
 
-Python 3.x required as well as:
+Python 3.x required as well as `requests` module:
 
+
+Centmin Mod users can install Python 3.x via `addons/python36_install.sh`
+
+```
+/usr/local/src/centminmod/addons/python36_install.sh
+```
 ```
 pip3 install requests
 ```
