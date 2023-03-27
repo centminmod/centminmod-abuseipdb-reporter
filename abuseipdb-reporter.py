@@ -77,9 +77,15 @@ headers = {
 }
 # String holding parameters to pass in json format
 # https://www.abuseipdb.com/categories
+categories = '14'
+if 'LF_SSHD' in trigger:
+    categories = '22'
+elif 'LF_DISTATTACK' in trigger:
+    categories = '4'
+
 querystring = {
     'ip': args.arguments[0],
-    'categories': '14',
+    'categories': categories,
     'comment': masked_comment
 }
 
@@ -89,7 +95,7 @@ if DEBUG:
         f.write("URL: {}\n".format(url))
         f.write("Headers: {}\n".format(headers))
         f.write("IP: {}\n".format(args.arguments[0]))
-        f.write("Categories: 14\n")
+        f.write("Categories: {}\n".format(categories))
         f.write("Comment: {}\n".format(masked_comment))
         f.write("----\n")
     print("DEBUG MODE: No actual report sent. Data saved to '{}'.".format(args.log_file))

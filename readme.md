@@ -56,11 +56,11 @@ URL: https://api.abuseipdb.com/api/v2/report
 Headers: {'Accept': 'application/json', 'Key': 'YOUR_API_KEY'}
 IP: 47.149.92.160
 Categories: 14
-Comment: (sshd) Failed SSH login from 47.149.92.160 (US/United States/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 27 09:03:28 host sshd[572974]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=47.149.92.160  user=root
-Mar 27 09:03:30 host sshd[572974]: Failed password for root from 47.149.92.160 port 55878 ssh2
-Mar 27 09:05:38 host sshd[572998]: Invalid user emilio from 47.149.92.160 port 34094
-Mar 27 09:05:39 host sshd[572998]: Failed password for invalid user emilio from 47.149.92.160 port 34094 ssh2
-Mar 27 09:07:21 host sshd[573017]: Invalid user exploit from 47.149.92.160 port 34666
+Comment: (sshd) Failed SSH login from 47.149.92.160 (US/United States/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 27 09:03:28 MASKED_HOSTNAME sshd[572974]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=47.149.92.160  user=root
+Mar 27 09:03:30 MASKED_HOSTNAME sshd[572974]: Failed password for root from 47.149.92.160 port 55878 ssh2
+Mar 27 09:05:38 MASKED_HOSTNAME sshd[572998]: Invalid user emilio from 47.149.92.160 port 34094
+Mar 27 09:05:39 MASKED_HOSTNAME sshd[572998]: Failed password for invalid user emilio from 47.149.92.160 port 34094 ssh2
+Mar 27 09:07:21 MASKED_HOSTNAME sshd[573017]: Invalid user exploit from 47.149.92.160 port 34666
 
 ----
 DEBUG MODE: No actual report sent.
@@ -68,11 +68,11 @@ URL: https://api.abuseipdb.com/api/v2/report
 Headers: {'Accept': 'application/json', 'Key': 'YOUR_API_KEY'}
 IP: 210.187.80.132
 Categories: 14
-Comment: (sshd) Failed SSH login from 210.187.80.132 (MY/Malaysia/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 27 09:04:37 host sshd[572984]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=210.187.80.132  user=root
-Mar 27 09:04:39 host sshd[572984]: Failed password for root from 210.187.80.132 port 46148 ssh2
-Mar 27 09:07:02 host sshd[573011]: Invalid user api from 210.187.80.132 port 50060
-Mar 27 09:07:04 host sshd[573011]: Failed password for invalid user api from 210.187.80.132 port 50060 ssh2
-Mar 27 09:08:52 host sshd[573069]: Invalid user osa from 210.187.80.132 port 50630
+Comment: (sshd) Failed SSH login from 210.187.80.132 (MY/Malaysia/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 27 09:04:37 MASKED_HOSTNAME sshd[572984]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=210.187.80.132  user=root
+Mar 27 09:04:39 MASKED_HOSTNAME sshd[572984]: Failed password for root from 210.187.80.132 port 46148 ssh2
+Mar 27 09:07:02 MASKED_HOSTNAME sshd[573011]: Invalid user api from 210.187.80.132 port 50060
+Mar 27 09:07:04 MASKED_HOSTNAME sshd[573011]: Failed password for invalid user api from 210.187.80.132 port 50060 ssh2
+Mar 27 09:08:52 MASKED_HOSTNAME sshd[573069]: Invalid user osa from 210.187.80.132 port 50630
 ```
 
 4. Set the `BLOCK_REPORT` variable in `/etc/csf.conf` to the executable script file.
