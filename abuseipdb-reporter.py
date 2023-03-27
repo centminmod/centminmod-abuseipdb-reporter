@@ -3,6 +3,7 @@ import requests
 import json
 import sys
 import argparse
+import socket
 
 # Set the DEBUG variable here (True or False)
 # True doesn't send to AbuseIPDB. Only logs to file
@@ -12,6 +13,15 @@ DEBUG = True
 # https://www.abuseipdb.com/account/api
 API_KEY = 'YOUR_API_KEY'
 DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'
+
+# Set privacy masks
+hostname = socket.gethostname()
+full_hostname = socket.getfqdn()
+short_hostname = socket.gethostbyname(hostname)
+
+# Define dummy mask hostname and IP
+mask_hostname = "MASKED_HOSTNAME"
+mask_ip = "0.0.0.0"
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='AbuseIPDB reporter script.')
@@ -32,6 +42,17 @@ message = args.arguments[5]
 logs = args.arguments[6]
 trigger = args.arguments[7]
 
+def get_public_ip():
+    try:
+        response = requests.get("https://geoip.centminmod.com/v4")
+        data = response.json()
+        return data['ip']
+    except requests.RequestException:
+        print("Error: Unable to fetch public IP from custom GeoIP API.")
+        sys.exit(1)
+
+public_ip = get_public_ip()
+
 # Defining the api-endpoint
 url = 'https://api.abuseipdb.com/api/v2/report'
 ports = args.arguments[1]
@@ -40,15 +61,20 @@ message = args.arguments[5]
 logs = args.arguments[6]
 trigger = args.arguments[7]
 comment = message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + logs
+
+# Mask sensitive information
+masked_comment = comment.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(public_ip, mask_ip)
+
 headers = {
      'Accept': 'application/json',
      'Key': API_KEY
 }
 # String holding parameters to pass in json format
+# https://www.abuseipdb.com/categories
 querystring = {
     'ip': args.arguments[0],
     'categories': '14',
-    'comment': comment
+    'comment': masked_comment
 }
 
 if DEBUG:
@@ -58,7 +84,7 @@ if DEBUG:
         f.write("Headers: {}\n".format(headers))
         f.write("IP: {}\n".format(args.arguments[0]))
         f.write("Categories: 14\n")
-        f.write("Comment: {}\n".format(comment))
+        f.write("Comment: {}\n".format(masked_comment))
         f.write("----\n")
     print("DEBUG MODE: No actual report sent. Data saved to '{}'.".format(args.log_file))
 else:
