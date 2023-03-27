@@ -92,7 +92,7 @@ masked_logs = logs.replace(short_hostname, mask_hostname).replace(full_hostname,
 
 # Replace IP addresses in the message string with the mask IP
 ip_pattern = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
-masked_message = ip_pattern.sub(mask_ip, message)
+masked_message = message.replace(args.arguments[0], mask_ip)
 
 # Create the comment string
 comment = masked_message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + masked_logs
