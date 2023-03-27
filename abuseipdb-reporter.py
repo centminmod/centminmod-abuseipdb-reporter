@@ -90,9 +90,13 @@ else:
 # Mask sensitive information in logs and the comment string
 masked_logs = logs.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(socket.getfqdn().split('.')[0], mask_hostname)
 
-# Replace IP addresses in the message string with the mask IP
+# Replace the reported IP address in the logs with the mask IP
 ip_pattern = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
-masked_message = message.replace(args.arguments[0], mask_ip)
+reported_ip = args.arguments[0]
+masked_logs = re.sub(ip_pattern, lambda x: mask_ip if x.group() == reported_ip else x.group(), masked_logs)
+
+# Replace the reported IP address in the message string with the mask IP
+masked_message = message.replace(reported_ip, mask_ip)
 
 # Create the comment string
 comment = masked_message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + masked_logs
