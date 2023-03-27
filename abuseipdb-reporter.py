@@ -9,6 +9,7 @@ import argparse
 # False, will send to AbuseIPDB
 DEBUG = True
 # Set your API key and default log file path here
+# https://www.abuseipdb.com/account/api
 API_KEY = 'YOUR_API_KEY'
 DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'
 
