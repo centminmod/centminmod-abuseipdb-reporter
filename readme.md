@@ -2,6 +2,16 @@
 
 Based on CSF Firewall and AbuseIPDB integration guide at https://www.abuseipdb.com/csf. Tailored for Centmin Mod LEMP stack based servers.
 
+## Dependencies
+
+Python 3.x required as well as:
+
+```
+pip3 install requests
+```
+
+## Setup
+
 1. Create an AbuseIPDB API key
 
 Register an account with AbuseIPDB, and [create an API key](https://www.abuseipdb.com/account/api). The API is free to use, but you do have to [create an account](https://www.abuseipdb.com/register).
