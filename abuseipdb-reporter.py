@@ -6,14 +6,16 @@ import argparse
 import socket
 import re
 
-# Set the DEBUG variable here (True or False)
-# True doesn't send to AbuseIPDB. Only logs to file
-# False, will send to AbuseIPDB
+# Set the DEBUG and LOG_API_REQUEST variables here (True or False)
+# DEBUG doesn't send to AbuseIPDB. Only logs to file
+# LOG_API_REQUEST, when True, logs API requests to file
 DEBUG = True
+LOG_API_REQUEST = True
 # Set your API key and default log file path here
 # https://www.abuseipdb.com/account/api
 API_KEY = 'YOUR_API_KEY'
 DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'
+DEFAULT_APILOG_FILE = '/var/log/abuseipdb-reporter-api.log'
 
 # Set privacy masks
 hostname = socket.gethostname()
@@ -87,16 +89,22 @@ if cluster_master:
 else:
     master_ips = []
 
-# Mask sensitive information in logs and the comment string
-masked_logs = logs.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(socket.getfqdn().split('.')[0], mask_hostname)
-
 # Replace the reported IP address in the logs with the mask IP
 ip_pattern = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
+time_pattern = re.compile(r'^(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})')
+
+# Mask sensitive information in logs and the comment string
+# Filter logs for the reported IP address and timestamp
+filtered_logs = '\n'.join([log for log in logs.split('\n') if args.arguments[0] in log])
+filtered_logs = '\n'.join([re.sub(r'^(\S+\s+\S+\s+)(\S+\s+)(\S+\s+)', r'\1\2', log) for log in filtered_logs.split('\n') if time_pattern.search(log) is not None and ip_pattern.search(log) is not None])
+
+# Replace sensitive information in the filtered logs
+masked_logs = filtered_logs.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(socket.getfqdn().split('.')[0], mask_hostname)
 masked_logs = masked_logs.replace(public_ip, mask_ip)
 masked_message = message.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(public_ip, mask_ip)
 
 # Create the comment string
-comment = masked_message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + masked_logs
+comment = masked_message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + filtered_logs
 
 # Replace sensitive information in the comment string with the masked values
 masked_comment = comment.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname)
@@ -147,6 +155,15 @@ if DEBUG:
 else:
     response = requests.post(url, headers=headers, params=querystring)
     decodedResponse = json.loads(response.text)
+    if LOG_API_REQUEST:
+        with open(DEFAULT_APILOG_FILE, 'a') as f:
+            f.write("API Request Sent:\n")
+            f.write("URL: {}\n".format(url))
+            f.write("Headers: {}\n".format(headers))
+            f.write("IP: {}\n".format(args.arguments[0]))
+            f.write("Categories: {}\n".format(categories))
+            f.write("Comment: {}\n".format(masked_comment))
+            f.write("----\n")
 
     if response.status_code == 200:
         print(json.dumps(decodedResponse['data'], sort_keys=True, indent=4))
