@@ -107,6 +107,12 @@ masked_logs = filtered_logs.replace(short_hostname, mask_hostname).replace(full_
 masked_logs = masked_logs.replace(public_ip, mask_ip)
 masked_message = message.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(public_ip, mask_ip)
 
+# Create a regex pattern to match the desired text
+pattern = r"Cluster member (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) \((.*?)\) said,"
+
+# Remove the matched text from the masked_message variable
+masked_message = re.sub(pattern, "", masked_message)
+
 # Create the comment string
 comment = masked_message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + filtered_logs
 
