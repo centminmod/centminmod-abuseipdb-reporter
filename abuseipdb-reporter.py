@@ -92,17 +92,14 @@ masked_logs = logs.replace(short_hostname, mask_hostname).replace(full_hostname,
 
 # Replace the reported IP address in the logs with the mask IP
 ip_pattern = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
-reported_ip = args.arguments[0]
-masked_logs = re.sub(ip_pattern, lambda x: mask_ip if x.group() == reported_ip else x.group(), masked_logs)
-
-# Replace the reported IP address in the message string with the mask IP
-masked_message = message.replace(reported_ip, mask_ip)
+masked_logs = masked_logs.replace(public_ip, mask_ip)
+masked_message = message.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(public_ip, mask_ip)
 
 # Create the comment string
 comment = masked_message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + masked_logs
 
 # Replace sensitive information in the comment string with the masked values
-masked_comment = comment.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(args.arguments[0], mask_ip)
+masked_comment = comment.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname)
 
 headers = {
      'Accept': 'application/json',
@@ -121,6 +118,8 @@ elif 'LF_FTPD' in trigger:
     categories = '5'
 elif 'LF_MODSEC' in trigger:
     categories = '21'
+elif 'PS_LIMIT' in trigger:
+    categories = '14'
 
 querystring = {
     'ip': args.arguments[0],
@@ -136,6 +135,13 @@ if DEBUG:
         f.write("IP: {}\n".format(args.arguments[0]))
         f.write("Categories: {}\n".format(categories))
         f.write("Comment: {}\n".format(masked_comment))
+        f.write("----")
+        f.write("DEBUG MODE: CSF passed data\n")
+        f.write("Ports: {}\n".format(ports))
+        f.write("In/Out: {}\n".format(inOut))
+        f.write("Message: {}\n".format(message))
+        f.write("Logs: {}\n".format(logs))
+        f.write("Trigger: {}\n".format(trigger))
         f.write("----\n")
     print("DEBUG MODE: No actual report sent. Data saved to '{}'.".format(args.log_file))
 else:
