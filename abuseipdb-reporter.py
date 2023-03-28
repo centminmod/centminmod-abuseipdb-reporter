@@ -9,8 +9,10 @@ import re
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
+# LOG_MODE can be 'full' or 'compact' - compact shows 1st line of log file only
 DEBUG = True
 LOG_API_REQUEST = True
+LOG_MODE = 'full'
 # Set your API key and default log file path here
 # https://www.abuseipdb.com/account/api
 API_KEY = 'YOUR_API_KEY'
@@ -99,8 +101,16 @@ else:
 ip_pattern = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
 time_pattern = re.compile(r'^(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})')
 
-filtered_logs = '\n'.join([log for log in logs.split('\n') if args.arguments[0] in log])
-filtered_logs = '\n'.join([re.sub(r'^(\S+\s+\S+\s+)(\S+\s+)(\S+\s+)', r'\1\2', log) for log in filtered_logs.split('\n') if time_pattern.search(log) is not None and ip_pattern.search(log) is not None])
+if LOG_MODE == 'full':
+    filtered_logs = '\n'.join([log for log in logs.split('\n') if args.arguments[0] in log])
+    filtered_logs = '\n'.join([re.sub(r'^(\S+\s+\S+\s+)(\S+\s+)(\S+\s+)', r'\1\2', log) for log in filtered_logs.split('\n') if time_pattern.search(log) is not None and ip_pattern.search(log) is not None])
+elif LOG_MODE == 'compact':
+    filtered_logs = logs.split('\n')[0]  # Extract the first line
+    filtered_logs = re.sub(r'^(\S+\s+\S+\s+)(\S+\s+)(\S+\s+)', r'\1\2', filtered_logs)  # Remove the 4th field
+    filtered_logs = '\n'.join([filtered_logs for log in filtered_logs.split('\n') if time_pattern.search(log) is not None and ip_pattern.search(log) is not None])
+else:
+    print("Error: Invalid LOG_MODE. Supported modes: 'full' or 'compact'.")
+    sys.exit(1)
 
 # Replace sensitive information in the filtered logs
 masked_logs = filtered_logs.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(socket.getfqdn().split('.')[0], mask_hostname)
@@ -147,20 +157,22 @@ querystring = {
 
 if DEBUG:
     with open(args.log_file, 'a') as f:
-        f.write("DEBUG MODE: No actual report sent.\n")
+        f.write("############################################################################\n")
+        f.write("DEBUG MODE: data intended to be sent to AbuseIPDB\n")
         f.write("URL: {}\n".format(url))
         f.write("Headers: {}\n".format(headers))
         f.write("IP: {}\n".format(args.arguments[0]))
         f.write("Categories: {}\n".format(categories))
         f.write("Comment: {}\n".format(masked_comment))
-        f.write("----\n")
-        f.write("DEBUG MODE: CSF passed data\n")
+        f.write("---------------------------------------------------------------------------\n")
+        f.write("DEBUG MODE: CSF passed data not sent to AbuseIPDB\n")
         f.write("Ports: {}\n".format(ports))
         f.write("In/Out: {}\n".format(inOut))
         f.write("Message: {}\n".format(message))
         f.write("Logs: {}\n".format(logs))
         f.write("Trigger: {}\n".format(trigger))
-        f.write("----\n")
+        f.write("############################################################################\n")
+        f.write("--------\n")
     print("DEBUG MODE: No actual report sent. Data saved to '{}'.".format(args.log_file))
 else:
     response = requests.post(url, headers=headers, params=querystring)
