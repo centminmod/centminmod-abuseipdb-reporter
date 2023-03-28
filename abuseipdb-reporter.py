@@ -64,6 +64,12 @@ message = args.arguments[5]
 logs = args.arguments[6]
 trigger = args.arguments[7]
 
+print("Ports:", ports)
+print("In/Out:", inOut)
+print("Message:", message)
+print("Logs:", logs)
+print("Trigger:", trigger)
+
 # Get the values from the csf.conf file
 with open('/etc/csf/csf.conf') as f:
     csf_conf = f.read()
@@ -93,9 +99,8 @@ else:
 ip_pattern = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
 time_pattern = re.compile(r'^(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})')
 
-filtered_logs = logs.split('\n')[0]  # Extract the first line
-filtered_logs = re.sub(r'^(\S+\s+\S+\s+)(\S+\s+)(\S+\s+)', r'\1\2', filtered_logs)  # Remove the 4th field
-filtered_logs = '\n'.join([filtered_logs for log in filtered_logs.split('\n') if time_pattern.search(log) is not None and ip_pattern.search(log) is not None])
+filtered_logs = '\n'.join([log for log in logs.split('\n') if args.arguments[0] in log])
+filtered_logs = '\n'.join([re.sub(r'^(\S+\s+\S+\s+)(\S+\s+)(\S+\s+)', r'\1\2', log) for log in filtered_logs.split('\n') if time_pattern.search(log) is not None and ip_pattern.search(log) is not None])
 
 # Replace sensitive information in the filtered logs
 masked_logs = filtered_logs.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(socket.getfqdn().split('.')[0], mask_hostname)
