@@ -143,7 +143,7 @@ if DEBUG:
         f.write("IP: {}\n".format(args.arguments[0]))
         f.write("Categories: {}\n".format(categories))
         f.write("Comment: {}\n".format(masked_comment))
-        f.write("----")
+        f.write("----\n")
         f.write("DEBUG MODE: CSF passed data\n")
         f.write("Ports: {}\n".format(ports))
         f.write("In/Out: {}\n".format(inOut))
