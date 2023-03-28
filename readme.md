@@ -73,13 +73,13 @@ URL: https://api.abuseipdb.com/api/v2/report
 Headers: {'Accept': 'application/json', 'Key': 'YOUR_API_KEY'}
 IP: 104.xxx.xxx.xxx
 Categories: 22
-Comment: (sshd) Failed SSH login from 0.0.0.0 (CA/Canada/hostname.domain.com): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 27 20:02:04 MASKED_HOSTNAME sshd[583368]: Failed password for root from 0.0.0.0 port 20136 ssh2
-Mar 27 20:09:38 MASKED_HOSTNAME sshd[583565]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=0.0.0.0  user=root
-Mar 27 20:09:40 MASKED_HOSTNAME sshd[583565]: Failed password for root from 0.0.0.0 port 20240 ssh2
-Mar 27 20:09:45 MASKED_HOSTNAME sshd[583565]: Failed password for root from 0.0.0.0 port 20240 ssh2
-Mar 27 20:09:54 MASKED_HOSTNAME sshd[583565]: Failed password for root from 0.0.0.0 port 20240 ssh2
-
-----DEBUG MODE: CSF passed data
+Comment: (sshd) Failed SSH login from 104.xxx.xxx.xxx (CA/Canada/hostname.domain.com): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 27 20:02:04 sshd[583368]: Failed password for root from 104.xxx.xxx.xxx port 20136 ssh2
+Mar 27 20:09:38 sshd[583565]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=104.xxx.xxx.xxx  user=root
+Mar 27 20:09:40 sshd[583565]: Failed password for root from 104.xxx.xxx.xxx port 20240 ssh2
+Mar 27 20:09:45 sshd[583565]: Failed password for root from 104.xxx.xxx.xxx port 20240 ssh2
+Mar 27 20:09:54 sshd[583565]: Failed password for root from 104.xxx.xxx.xxx port 20240 ssh2
+----
+DEBUG MODE: CSF passed data
 Ports: *
 In/Out: inout
 Message: (sshd) Failed SSH login from 104.xxx.xxx.xxx (CA/Canada/hostname.domain.com): 5 in the last 3600 secs
@@ -93,7 +93,7 @@ Trigger: LF_SSHD
 ----
 ```
 
-So CSF passed raw data for `hostname` and `104.xxx.xxx.xxx` become `MASKED_HOSTNAME` and `0.0.0.0` when sending to AbuseIPDB.
+So CSF passed raw data for `hostname` and `104.xxx.xxx.xxx` but script will remove the `lfd.log` 4th field for hostname when sending to AbuseIPDB.
 
 4. Set the `BLOCK_REPORT` variable in `/etc/csf.conf` to the executable script file.
 
