@@ -62,34 +62,38 @@ Edit the `/root/tools/abuseipdb-reporter.py` script's variables:
 * `DEBUG = True` - When set to `True`, debug mode is enabled and no actual CSF Firewall block actions will be sent to AbuseIPDB via API endpoint url. Instead block actions will be saved to a local log file `/var/log/abuseipdb-reporter-debug.log`. You can use this mode for troubleshooting or testing before you eventually set `DEBUG = False` to enable actual CSF Firewall block actions to be sent to AbuseIPDB via API endpoint url.
 * `API_KEY = 'YOUR_API_KEY'` - Set `YOUR_API_KEY` to your AbuseIPDB API key
 
-Example of `DEBUG = True` debug mode saved log file entries at `/var/log/abuseipdb-reporter-debug.log`
+Example of `DEBUG = True` debug mode saved log file entries at `/var/log/abuseipdb-reporter-debug.log` 
+
+Data logging of processed data that AbuseIPDB will receive + also a raw copy of data passed from CSF so can compare the two:
 
 ```
 cat /var/log/abuseipdb-reporter-debug.log
-
 DEBUG MODE: No actual report sent.
 URL: https://api.abuseipdb.com/api/v2/report
 Headers: {'Accept': 'application/json', 'Key': 'YOUR_API_KEY'}
-IP: 47.149.92.160
-Categories: 14
-Comment: (sshd) Failed SSH login from 47.149.92.160 (US/United States/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 27 09:03:28 MASKED_HOSTNAME sshd[572974]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=47.149.92.160  user=root
-Mar 27 09:03:30 MASKED_HOSTNAME sshd[572974]: Failed password for root from 47.149.92.160 port 55878 ssh2
-Mar 27 09:05:38 MASKED_HOSTNAME sshd[572998]: Invalid user emilio from 47.149.92.160 port 34094
-Mar 27 09:05:39 MASKED_HOSTNAME sshd[572998]: Failed password for invalid user emilio from 47.149.92.160 port 34094 ssh2
-Mar 27 09:07:21 MASKED_HOSTNAME sshd[573017]: Invalid user exploit from 47.149.92.160 port 34666
+IP: 104.xxx.xxx.xxx
+Categories: 22
+Comment: (sshd) Failed SSH login from 0.0.0.0 (CA/Canada/hostname.domain.com): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 27 20:02:04 MASKED_HOSTNAME sshd[583368]: Failed password for root from 0.0.0.0 port 20136 ssh2
+Mar 27 20:09:38 MASKED_HOSTNAME sshd[583565]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=0.0.0.0  user=root
+Mar 27 20:09:40 MASKED_HOSTNAME sshd[583565]: Failed password for root from 0.0.0.0 port 20240 ssh2
+Mar 27 20:09:45 MASKED_HOSTNAME sshd[583565]: Failed password for root from 0.0.0.0 port 20240 ssh2
+Mar 27 20:09:54 MASKED_HOSTNAME sshd[583565]: Failed password for root from 0.0.0.0 port 20240 ssh2
 
+----DEBUG MODE: CSF passed data
+Ports: *
+In/Out: inout
+Message: (sshd) Failed SSH login from 104.xxx.xxx.xxx (CA/Canada/hostname.domain.com): 5 in the last 3600 secs
+Logs: Mar 27 20:02:04 hostname sshd[583368]: Failed password for root from 104.xxx.xxx.xxx port 20136 ssh2
+Mar 27 20:09:38 hostname sshd[583565]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=104.xxx.xxx.xxx  user=root
+Mar 27 20:09:40 hostname sshd[583565]: Failed password for root from 104.xxx.xxx.xxx port 20240 ssh2
+Mar 27 20:09:45 hostname sshd[583565]: Failed password for root from 104.xxx.xxx.xxx port 20240 ssh2
+Mar 27 20:09:54 hostname sshd[583565]: Failed password for root from 104.xxx.xxx.xxx port 20240 ssh2
+
+Trigger: LF_SSHD
 ----
-DEBUG MODE: No actual report sent.
-URL: https://api.abuseipdb.com/api/v2/report
-Headers: {'Accept': 'application/json', 'Key': 'YOUR_API_KEY'}
-IP: 210.187.80.132
-Categories: 14
-Comment: (sshd) Failed SSH login from 210.187.80.132 (MY/Malaysia/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 27 09:04:37 MASKED_HOSTNAME sshd[572984]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=210.187.80.132  user=root
-Mar 27 09:04:39 MASKED_HOSTNAME sshd[572984]: Failed password for root from 210.187.80.132 port 46148 ssh2
-Mar 27 09:07:02 MASKED_HOSTNAME sshd[573011]: Invalid user api from 210.187.80.132 port 50060
-Mar 27 09:07:04 MASKED_HOSTNAME sshd[573011]: Failed password for invalid user api from 210.187.80.132 port 50060 ssh2
-Mar 27 09:08:52 MASKED_HOSTNAME sshd[573069]: Invalid user osa from 210.187.80.132 port 50630
 ```
+
+So CSF passed raw data for `hostname` and `104.xxx.xxx.xxx` become `MASKED_HOSTNAME` and `0.0.0.0` when sending to AbuseIPDB.
 
 4. Set the `BLOCK_REPORT` variable in `/etc/csf.conf` to the executable script file.
 
