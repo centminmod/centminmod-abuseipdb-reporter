@@ -98,6 +98,33 @@ Trigger: LF_SSHD
 
 So CSF passed raw data for `hostname` and `1.34.234.1` but script will remove the `lfd.log` 4th field for `hostname` when sending to AbuseIPDB.
 
+## CSF Cluster Mode
+
+For folks using CSF Cluster Mode, the `abuseipdb-reporter.py` script will also privacy mask your Cluster members IP addresses. Example in `DEBUG = True` mode logging:
+
+```
+cat /var/log/abuseipdb-reporter-debug.log
+
+############################################################################
+DEBUG MODE: data intended to be sent to AbuseIPDB
+URL: https://api.abuseipdb.com/api/v2/report
+Headers: {'Accept': 'application/json', 'Key': 'YOUR_API_KEY'}
+IP: 49.212.187.208
+Categories: 14
+Comment:  DENY 49.212.187.208, Reason:[(sshd) Failed SSH login from 49.212.187.208 (JP/Japan/os3-301-40454.vs.sakura.ne.jp): 5 in the last 3600 secs]; Ports: *; Direction: inout; Trigger: LF_CLUSTER; Logs: 
+---------------------------------------------------------------------------
+DEBUG MODE: CSF passed data not sent to AbuseIPDB
+Ports: *
+In/Out: inout
+Message: Cluster member 45.xxx.xxx.xxx (US/United States/-) said, DENY 49.212.187.208, Reason:[(sshd) Failed SSH login from 49.212.187.208 (JP/Japan/os3-301-40454.vs.sakura.ne.jp): 5 in the last 3600 secs]
+Logs:  
+Trigger: LF_CLUSTER
+############################################################################
+--------
+```
+
+The CSF passed data also reveals your Cluster member's real IP address `45.xxx.xxx.xxx`. The `abuseipdb-reporter.py` script will remove that and the full line `Cluster member 45.xxx.xxx.xxx (US/United States/-) said,` from the data intended to be sent to AbuseIPDB so it doesn't reveal your CSF Cluster member IP addresses.
+
 CSF Firewall passes data to `BLOCK_REPORT` script for the following arguments:
 
 ```
