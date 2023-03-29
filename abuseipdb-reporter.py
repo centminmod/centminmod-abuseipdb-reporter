@@ -35,7 +35,7 @@ import socket
 import re
 import subprocess
 
-VERSION = "0.0.8"
+VERSION = "0.0.9"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -65,6 +65,9 @@ parser.add_argument('arguments', nargs='*', help='Arguments passed by CSF/LFD')
 args = parser.parse_args()
 
 def log_message(log_file, message):
+    if not os.path.exists(log_file):
+        with open(log_file, 'w') as f:
+            f.write("Log file created.\n")
     with open(log_file, 'a+') as f:
         f.write(message + '\n')
 
