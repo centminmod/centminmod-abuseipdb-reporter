@@ -1,4 +1,27 @@
 #!/usr/bin/env python3
+####################################################################
+# created for CentOS, AlmaLinux, RockyLinux RPM OSes
+# specifically for Centmin Mod LEMP stacks centminmod.com
+# by George Liu (eva2000)
+#
+# To send data to AbuseIPDB, set DEBUG = False
+# To check data without sending to AbuseIPDB, set DEBUG = True
+#
+# When DEBUG = True set, instead of sending data passed from CSF
+# BLOCK_REPORT set script (this script), the data will be logged to
+# DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'
+# This log file contains for each entry 2 sets of data, the raw CSF
+# sent data and data intended to be sent to AbuseIPDB. You can compare
+# the two sets of data for troubleshooting and diagnostic purposes
+#
+# By default CSF Firewall passes the full /var/log/messages
+# log file lines that lead up to and related to the CSF block
+# action and that full log files is sent to AbuseIPDB up to up
+# max 1024 characters. You can control how much of that data is
+# sent to AbuseIPDB via variable LOG_MODE. Set to defaul to full
+# you can change it to LOG_MODE = 'compact' to only sent the 1st
+# log file line instead of the full log file.
+####################################################################
 import requests
 import json
 import sys
@@ -6,6 +29,7 @@ import argparse
 import socket
 import re
 
+VERSION = "0.0.1"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
