@@ -5,6 +5,10 @@
 # by George Liu (eva2000)
 # https://github.com/centminmod/centminmod-abuseipdb-reporter
 #
+# script is used with CSF Firewall BLOCK_REPORT to send CSF Firewall
+# LFD block actions to AbuseIPDB database via their API
+# https://www.abuseipdb.com/csf
+#
 # To send data to AbuseIPDB, set DEBUG = False
 # To check data without sending to AbuseIPDB, set DEBUG = True
 #
