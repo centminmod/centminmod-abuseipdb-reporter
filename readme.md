@@ -22,7 +22,7 @@ pip3 install requests
 
 Register an account with AbuseIPDB, and [create an API key](https://www.abuseipdb.com/account/api). The API is free to use, but you do have to [create an account](https://www.abuseipdb.com/register).
 
-2. Integrating our Blacklist
+2. Integrating AbuseIPDB Blocklist Into CSF Firewall
 
 Edit `/etc/csf/csf.blocklists` and add blocklist for AbuseIPD and change `YOUR_API_KEY` to your API Key from step 1.
 
