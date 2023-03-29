@@ -65,7 +65,7 @@ parser.add_argument('arguments', nargs='*', help='Arguments passed by CSF/LFD')
 args = parser.parse_args()
 
 def log_message(log_file, message):
-    with open(log_file, 'a') as f:
+    with open(log_file, 'a+') as f:
         f.write(message + '\n')
 
 # Check if the required arguments are provided
