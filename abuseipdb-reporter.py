@@ -35,7 +35,7 @@ import socket
 import re
 import subprocess
 
-VERSION = "0.0.5"
+VERSION = "0.0.6"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -77,6 +77,15 @@ message = args.arguments[5]
 logs = args.arguments[6]
 trigger = args.arguments[7]
 
+def get_public_ip():
+    try:
+        response = requests.get("https://geoip.centminmod.com/v4")
+        data = response.json()
+        return data['ip']
+    except requests.RequestException:
+        print("Error: Unable to fetch public IP from custom GeoIP API.")
+        sys.exit(1)
+
 def get_all_public_ips():
     try:
         cmd = "ip addr show | grep 'inet .*global' | awk '{print $2}' | cut -d '/' -f1"
@@ -85,9 +94,15 @@ def get_all_public_ips():
         return ips
     except subprocess.CalledProcessError:
         print("Error: Unable to fetch all public IPs.")
-        sys.exit(1)
+        return []  # Return an empty list instead of exiting the script
 
 public_ips = get_all_public_ips()
+
+# If the updated method returns no IPs or invalid IPs, fallback to the previous method
+if not public_ips or any(not ip_pattern.match(ip) for ip in public_ips):
+    print("Using fallback method to get the public IP.")
+    public_ip = get_public_ip()
+    public_ips = [public_ip]
 
 # Defining the api-endpoint
 url = 'https://api.abuseipdb.com/api/v2/report'
