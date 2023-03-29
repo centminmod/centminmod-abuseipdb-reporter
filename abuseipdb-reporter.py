@@ -34,9 +34,8 @@ import argparse
 import socket
 import re
 import subprocess
-import os
 
-VERSION = "0.0.9"
+VERSION = "0.1.0"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -87,35 +86,18 @@ message = args.arguments[5]
 logs = args.arguments[6]
 trigger = args.arguments[7]
 
-def get_public_ip():
-    try:
-        response = requests.get("https://geoip.centminmod.com/v4")
-        data = response.json()
-        return data['ip']
-    except requests.RequestException:
-        print("Error: Unable to fetch public IP from custom GeoIP API.")
-        log_message(args.log_file, "Error: Unable to fetch public IP from custom GeoIP API.")
-        sys.exit(1)
-
 def get_all_public_ips():
     try:
-        cmd = "ip addr show | grep 'inet .*global' | awk '{print $2}' | cut -d '/' -f1 | sort | uniq"
+        cmd = "ip addr show | grep 'inet .*global' | awk '{print $2}' | cut -d '/' -f1"
         output = subprocess.check_output(cmd, shell=True).decode('utf-8')
         ips = output.strip().split('\n')
         return ips
     except subprocess.CalledProcessError:
         print("Error: Unable to fetch all public IPs.")
         log_message(args.log_file, "Error: Unable to fetch all public IPs.")
-        return []  # Return an empty list instead of exiting the script
+        sys.exit(1)
 
 public_ips = get_all_public_ips()
-
-# If the updated method returns no IPs or invalid IPs, fallback to the previous method
-if not public_ips or any(not ip_pattern.match(ip) for ip in public_ips):
-    print("Using fallback method to get the public IP.")
-    log_message(args.log_file, "Using fallback method to get the public IP.")
-    public_ip = get_public_ip()
-    public_ips = [public_ip]
 
 # Defining the api-endpoint
 url = 'https://api.abuseipdb.com/api/v2/report'
@@ -130,13 +112,6 @@ print("In/Out:", inOut)
 print("Message:", message)
 print("Logs:", logs)
 print("Trigger:", trigger)
-# check if the script receives CSF Firewall data at this point
-log_message(args.log_file, "Check CSF passed data:")
-log_message(args.log_file, "Ports: {}".format(ports))
-log_message(args.log_file, "In/Out: {}".format(inOut))
-log_message(args.log_file, "Message: {}".format(message))
-log_message(args.log_file, "Logs: {}".format(logs))
-log_message(args.log_file, "Trigger: {}".format(trigger))
 
 # Get the values from the csf.conf file
 with open('/etc/csf/csf.conf') as f:
@@ -176,7 +151,6 @@ elif LOG_MODE == 'compact':
     filtered_logs = '\n'.join([filtered_logs for log in filtered_logs.split('\n') if time_pattern.search(log) is not None and ip_pattern.search(log) is not None])
 else:
     print("Error: Invalid LOG_MODE. Supported modes: 'full' or 'compact'.")
-    log_message(args.log_file, "Error: Invalid LOG_MODE. Supported modes: 'full' or 'compact'.")
     sys.exit(1)
 
 # Create a regex pattern to match any content within the square brackets, preceded by the word "user"
