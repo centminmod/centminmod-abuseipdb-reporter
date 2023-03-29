@@ -3,6 +3,7 @@
 # created for CentOS, AlmaLinux, RockyLinux RPM OSes
 # specifically for Centmin Mod LEMP stacks centminmod.com
 # by George Liu (eva2000)
+# https://github.com/centminmod/centminmod-abuseipdb-reporter
 #
 # To send data to AbuseIPDB, set DEBUG = False
 # To check data without sending to AbuseIPDB, set DEBUG = True
