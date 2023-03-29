@@ -64,36 +64,53 @@ Edit the `/root/tools/abuseipdb-reporter.py` script's variables:
 
 Example of `DEBUG = True` debug mode saved log file entries at `/var/log/abuseipdb-reporter-debug.log` 
 
-Data logging of processed data that AbuseIPDB will receive + also a raw copy of data passed from CSF so can compare the two:
+Data logging of processed data that AbuseIPDB will receive (`DEBUG MODE: data intended to be sent to AbuseIPDB`) + also a raw copy of data passed from CSF (`DEBUG MODE: CSF passed data not sent to AbuseIPDB`) so can compare the two:
 
 ```
 cat /var/log/abuseipdb-reporter-debug.log
-DEBUG MODE: No actual report sent.
+
+############################################################################
+DEBUG MODE: data intended to be sent to AbuseIPDB
 URL: https://api.abuseipdb.com/api/v2/report
 Headers: {'Accept': 'application/json', 'Key': 'YOUR_API_KEY'}
-IP: 104.xxx.xxx.xxx
+IP: 1.34.234.1
 Categories: 22
-Comment: (sshd) Failed SSH login from 104.xxx.xxx.xxx (CA/Canada/hostname.domain.com): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 27 20:02:04 sshd[583368]: Failed password for root from 104.xxx.xxx.xxx port 20136 ssh2
-Mar 27 20:09:38 sshd[583565]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=104.xxx.xxx.xxx  user=root
-Mar 27 20:09:40 sshd[583565]: Failed password for root from 104.xxx.xxx.xxx port 20240 ssh2
-Mar 27 20:09:45 sshd[583565]: Failed password for root from 104.xxx.xxx.xxx port 20240 ssh2
-Mar 27 20:09:54 sshd[583565]: Failed password for root from 104.xxx.xxx.xxx port 20240 ssh2
-----
-DEBUG MODE: CSF passed data
+Comment: (sshd) Failed SSH login from 1.34.234.1 (TW/Taiwan/1-34-234-1.hinet-ip.hinet.net): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 28 23:52:08 sshd[548999]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=1.34.234.1  user=root
+Mar 28 23:52:11 sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
+Mar 28 23:52:14 sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
+Mar 28 23:52:19 sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
+Mar 28 23:52:23 sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
+---------------------------------------------------------------------------
+DEBUG MODE: CSF passed data not sent to AbuseIPDB
 Ports: *
 In/Out: inout
-Message: (sshd) Failed SSH login from 104.xxx.xxx.xxx (CA/Canada/hostname.domain.com): 5 in the last 3600 secs
-Logs: Mar 27 20:02:04 hostname sshd[583368]: Failed password for root from 104.xxx.xxx.xxx port 20136 ssh2
-Mar 27 20:09:38 hostname sshd[583565]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=104.xxx.xxx.xxx  user=root
-Mar 27 20:09:40 hostname sshd[583565]: Failed password for root from 104.xxx.xxx.xxx port 20240 ssh2
-Mar 27 20:09:45 hostname sshd[583565]: Failed password for root from 104.xxx.xxx.xxx port 20240 ssh2
-Mar 27 20:09:54 hostname sshd[583565]: Failed password for root from 104.xxx.xxx.xxx port 20240 ssh2
+Message: (sshd) Failed SSH login from 1.34.234.1 (TW/Taiwan/1-34-234-1.hinet-ip.hinet.net): 5 in the last 3600 secs
+Logs: Mar 28 23:52:08 hostname sshd[548999]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=1.34.234.1  user=root
+Mar 28 23:52:11 hostname sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
+Mar 28 23:52:14 hostname sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
+Mar 28 23:52:19 hostname sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
+Mar 28 23:52:23 hostname sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
 
 Trigger: LF_SSHD
-----
+############################################################################
+--------
 ```
 
-So CSF passed raw data for `hostname` and `104.xxx.xxx.xxx` but script will remove the `lfd.log` 4th field for hostname when sending to AbuseIPDB.
+So CSF passed raw data for `hostname` and `1.34.234.1` but script will remove the `lfd.log` 4th field for `hostname` when sending to AbuseIPDB.
+
+CSF Firewall passes data to `BLOCK_REPORT` script for the following arguments:
+
+```
+ARG 1 = IP Address  # The IP address or CIDR being blocked
+ARG 2 = ports   # Port, comma separated list or * for all ports
+ARG 3 = permanent # 0=temporary block, 1=permanent block
+ARG 4 = inout   # Direction of block: in, out or inout
+ARG 5 = timeout   # If a temporary block, TTL in seconds, otherwise 0
+ARG 6 = message   # Message containing reason for block
+ARG 7 = logs    # The logs lines that triggered the block (will contain
+                        # line feeds between each log line)
+ARG 8 = trigger   # The configuration settings triggered
+```
 
 4. Set the `BLOCK_REPORT` variable in `/etc/csf.conf` to the executable script file.
 
