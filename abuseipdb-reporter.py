@@ -35,7 +35,7 @@ import socket
 import re
 import subprocess
 
-VERSION = "0.0.6"
+VERSION = "0.0.7"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -88,7 +88,7 @@ def get_public_ip():
 
 def get_all_public_ips():
     try:
-        cmd = "ip addr show | grep 'inet .*global' | awk '{print $2}' | cut -d '/' -f1"
+        cmd = "ip addr show | grep 'inet .*global' | awk '{print $2}' | cut -d '/' -f1 | uniq"
         output = subprocess.check_output(cmd, shell=True).decode('utf-8')
         ips = output.strip().split('\n')
         return ips
