@@ -35,7 +35,7 @@ import socket
 import re
 import subprocess
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -225,6 +225,7 @@ querystring = {
 if DEBUG:
     with open(args.log_file, 'a') as f:
         f.write("############################################################################\n")
+        f.write("Version: {}\n".format(VERSION))
         f.write("DEBUG MODE: data intended to be sent to AbuseIPDB\n")
         f.write("URL: {}\n".format(url))
         f.write("Headers: {}\n".format(headers))
