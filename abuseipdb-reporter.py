@@ -88,7 +88,7 @@ def get_public_ip():
 
 def get_all_public_ips():
     try:
-        cmd = "ip addr show | grep 'inet .*global' | awk '{print $2}' | cut -d '/' -f1 | uniq"
+        cmd = "ip addr show | grep 'inet .*global' | awk '{print $2}' | cut -d '/' -f1 | sort | uniq"
         output = subprocess.check_output(cmd, shell=True).decode('utf-8')
         ips = output.strip().split('\n')
         return ips
