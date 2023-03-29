@@ -34,7 +34,7 @@ import argparse
 import socket
 import re
 
-VERSION = "0.0.3"
+VERSION = "0.0.4"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -154,6 +154,16 @@ filtered_logs = re.sub(any_content_pattern, r'\1[REDACTED]', filtered_logs)
 # Replace sensitive information in the filtered logs
 masked_logs = filtered_logs.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(socket.getfqdn().split('.')[0], mask_hostname)
 masked_logs = masked_logs.replace(public_ip, mask_ip)
+
+# Extract the destination IP from the log message and apply the change only if the trigger is 'PS_LIMIT'
+if trigger == 'PS_LIMIT':
+    dst_ip_match = re.search(r'DST=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})', logs)
+
+    if dst_ip_match:
+        dst_ip = dst_ip_match.group(1)
+        # Replace the destination IP with the masked IP in the masked_logs variable
+        masked_logs = masked_logs.replace(dst_ip, mask_ip)
+
 masked_message = message.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(public_ip, mask_ip)
 
 # Create a regex pattern to match the desired text
