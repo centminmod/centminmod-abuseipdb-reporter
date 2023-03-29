@@ -33,8 +33,9 @@ import sys
 import argparse
 import socket
 import re
+import subprocess
 
-VERSION = "0.0.4"
+VERSION = "0.0.5"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -76,16 +77,17 @@ message = args.arguments[5]
 logs = args.arguments[6]
 trigger = args.arguments[7]
 
-def get_public_ip():
+def get_all_public_ips():
     try:
-        response = requests.get("https://geoip.centminmod.com/v4")
-        data = response.json()
-        return data['ip']
-    except requests.RequestException:
-        print("Error: Unable to fetch public IP from custom GeoIP API.")
+        cmd = "ip addr show | grep 'inet .*global' | awk '{print $2}' | cut -d '/' -f1"
+        output = subprocess.check_output(cmd, shell=True).decode('utf-8')
+        ips = output.strip().split('\n')
+        return ips
+    except subprocess.CalledProcessError:
+        print("Error: Unable to fetch all public IPs.")
         sys.exit(1)
 
-public_ip = get_public_ip()
+public_ips = get_all_public_ips()
 
 # Defining the api-endpoint
 url = 'https://api.abuseipdb.com/api/v2/report'
@@ -153,7 +155,9 @@ filtered_logs = re.sub(any_content_pattern, r'\1[REDACTED]', filtered_logs)
 
 # Replace sensitive information in the filtered logs
 masked_logs = filtered_logs.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(socket.getfqdn().split('.')[0], mask_hostname)
-masked_logs = masked_logs.replace(public_ip, mask_ip)
+
+for ip in public_ips:
+    masked_logs = masked_logs.replace(ip, mask_ip)
 
 # Extract the destination IP from the log message and apply the change only if the trigger is 'PS_LIMIT'
 if trigger == 'PS_LIMIT':
@@ -164,7 +168,10 @@ if trigger == 'PS_LIMIT':
         # Replace the destination IP with the masked IP in the masked_logs variable
         masked_logs = masked_logs.replace(dst_ip, mask_ip)
 
-masked_message = message.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(public_ip, mask_ip)
+masked_message = message.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname)
+
+for ip in public_ips:
+    masked_message = masked_message.replace(ip, mask_ip)
 
 # Create a regex pattern to match the desired text
 pattern = r"Cluster member (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) \((.*?)\) said,"
