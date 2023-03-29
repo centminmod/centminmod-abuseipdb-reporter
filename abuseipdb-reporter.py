@@ -157,6 +157,8 @@ elif 'LF_MODSEC' in trigger:
     categories = '21'
 elif 'PS_LIMIT' in trigger:
     categories = '14'
+elif 'LF_DISTSMTP' in trigger:
+    categories = '18'
 
 querystring = {
     'ip': args.arguments[0],
