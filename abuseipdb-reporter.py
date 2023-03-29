@@ -34,7 +34,7 @@ import argparse
 import socket
 import re
 
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -146,8 +146,8 @@ username_pattern = r'\[user \[([^\]]+)\]'
 # Replace the matched text in the filtered_logs variable with "USERNAME"
 filtered_logs = re.sub(username_pattern, '[user [USERNAME]]', filtered_logs)
 
-# Create a regex pattern to match any content within the square brackets, including the preceding word "account"
-any_content_pattern = r'(account )\[(.*?)\]'
+# Create a regex pattern to match any content within the square brackets, preceded by the word "account"
+any_content_pattern = r'(\baccount )\[(.*?)\]'
 # Replace the matched text in the filtered_logs variable with "account [REDACTED]"
 filtered_logs = re.sub(any_content_pattern, r'\1[REDACTED]', filtered_logs)
 
