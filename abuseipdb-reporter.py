@@ -34,7 +34,7 @@ import argparse
 import socket
 import re
 
-VERSION = "0.0.2"
+VERSION = "0.0.3"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -131,7 +131,7 @@ ip_pattern = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
 time_pattern = re.compile(r'^(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})')
 
 if LOG_MODE == 'full':
-    filtered_logs = '\n'.join([log for log in logs.split('\n') if args.arguments[0] in log])
+    filtered_logs = '\n'.join([log for log in logs.split('\n') if ip_pattern.search(log) is not None])
     filtered_logs = '\n'.join([re.sub(r'^(\S+\s+\S+\s+)(\S+\s+)(\S+\s+)', r'\1\2', log) for log in filtered_logs.split('\n') if time_pattern.search(log) is not None and ip_pattern.search(log) is not None])
 elif LOG_MODE == 'compact':
     filtered_logs = logs.split('\n')[0]  # Extract the first line
