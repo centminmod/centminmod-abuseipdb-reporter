@@ -34,6 +34,7 @@ import argparse
 import socket
 import re
 import subprocess
+import os
 
 VERSION = "0.0.9"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
