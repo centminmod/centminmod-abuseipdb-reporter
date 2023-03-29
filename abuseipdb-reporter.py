@@ -112,6 +112,16 @@ else:
     print("Error: Invalid LOG_MODE. Supported modes: 'full' or 'compact'.")
     sys.exit(1)
 
+# Create a regex pattern to match the text within the square brackets following "user"
+username_pattern = r'\[user \[([^\]]+)\]'
+# Replace the matched text in the filtered_logs variable with "USERNAME"
+filtered_logs = re.sub(username_pattern, '[user [USERNAME]]', filtered_logs)
+
+# Create a regex pattern to match any content within the square brackets, including the preceding word "account"
+any_content_pattern = r'(account )\[(.*?)\]'
+# Replace the matched text in the filtered_logs variable with "account [REDACTED]"
+filtered_logs = re.sub(any_content_pattern, r'\1[REDACTED]', filtered_logs)
+
 # Replace sensitive information in the filtered logs
 masked_logs = filtered_logs.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(socket.getfqdn().split('.')[0], mask_hostname)
 masked_logs = masked_logs.replace(public_ip, mask_ip)
@@ -119,12 +129,11 @@ masked_message = message.replace(short_hostname, mask_hostname).replace(full_hos
 
 # Create a regex pattern to match the desired text
 pattern = r"Cluster member (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) \((.*?)\) said,"
-
 # Remove the matched text from the masked_message variable
 masked_message = re.sub(pattern, "", masked_message)
 
 # Create the comment string
-comment = masked_message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + filtered_logs
+comment = masked_message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + masked_logs
 
 # Replace sensitive information in the comment string with the masked values
 masked_comment = comment.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname)
