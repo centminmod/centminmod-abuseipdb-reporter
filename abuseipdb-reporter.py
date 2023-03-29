@@ -141,10 +141,10 @@ else:
     print("Error: Invalid LOG_MODE. Supported modes: 'full' or 'compact'.")
     sys.exit(1)
 
-# Create a regex pattern to match the text within the square brackets following "user"
-username_pattern = r'\[user \[([^\]]+)\]'
-# Replace the matched text in the filtered_logs variable with "USERNAME"
-filtered_logs = re.sub(username_pattern, '[user [USERNAME]]', filtered_logs)
+# Create a regex pattern to match any content within the square brackets, preceded by the word "user"
+username_pattern = r'(\buser )\[(.*?)\]'
+# Replace the matched text in the filtered_logs variable with "user [USERNAME]"
+filtered_logs = re.sub(username_pattern, r'\1[USERNAME]', filtered_logs)
 
 # Create a regex pattern to match any content within the square brackets, preceded by the word "account"
 any_content_pattern = r'(\baccount )\[(.*?)\]'
