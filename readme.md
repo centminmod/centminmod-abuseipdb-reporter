@@ -191,7 +191,7 @@ Only get entries where `notsentTrigger` = `LF_SSHD`
 
 ```bash
 cat /var/log/abuseipdb-reporter-debug-json.log | jq '.[] | select(.notsentTrigger == "LF_SSHD")'
-
+```
 
 Only get entries where `notsentTrigger` != `LF_SSHD`
 
