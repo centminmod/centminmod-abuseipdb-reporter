@@ -160,7 +160,7 @@ Example of `DEBUG = True` debug mode with `JSON_LOG_FORMAT = True` saved log fil
 ]
 ```
 
-For JSON format, the key names prefixed with `sent` are data that is sent to AbuseIPDB. Will key names prefixed with `notsent` is the data CSF passed onto the script. So CSF passed raw data for `hostname` and `165.154.247.162` but script will remove the `lfd.log` 4th field for `hostname` when sending to AbuseIPDB.
+For JSON format, the key names prefixed with `sent` are data that is sent to AbuseIPDB. While key names prefixed with `notsent` is data CSF passed onto the script. So CSF passed raw data for `hostname` and `165.154.247.162` but script will remove the `lfd.log` 4th field for `hostname` when sending to AbuseIPDB.
 
 ## Parsing JSON formatted logs
 
@@ -268,7 +268,7 @@ Example of `DEBUG = True` debug mode with `JSON_LOG_FORMAT = True` saved log fil
 ]
 ```
 
-For JSON format, the key names prefixed with `sent` are data that is sent to AbuseIPDB. Will key names prefixed with `notsent` is the data CSF passed onto the script. The CSF passed data also reveals your Cluster member's real IP address `45.xxx.xxx.xxx`. The `abuseipdb-reporter.py` script will remove that and the full line `Cluster member 45.xxx.xxx.xxx (US/United States/-) said,` from the data intended to be sent to AbuseIPDB so it doesn't reveal your CSF Cluster member IP addresses.
+For JSON format, the key names prefixed with `sent` are data that is sent to AbuseIPDB. While key names prefixed with `notsent` is data CSF passed onto the script. The CSF passed data also reveals your Cluster member's real IP address `45.xxx.xxx.xxx`. The `abuseipdb-reporter.py` script will remove that and the full line `Cluster member 45.xxx.xxx.xxx (US/United States/-) said,` from the data intended to be sent to AbuseIPDB so it doesn't reveal your CSF Cluster member IP addresses.
 
 CSF Firewall passes data to `BLOCK_REPORT` script for the following arguments:
 
