@@ -38,7 +38,7 @@ import configparser
 import os
 import atexit
 
-VERSION = "0.1.4"
+VERSION = "0.1.5"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -226,6 +226,11 @@ for ip in public_ips:
 pattern = r"Cluster member (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) \((.*?)\) said,"
 # Remove the matched text from the masked_message variable
 masked_message = re.sub(pattern, "", masked_message)
+
+# Replace the matched text in the masked_message variable with "user [USERNAME]"
+masked_message = re.sub(username_pattern, r'\1[USERNAME]', masked_message)
+# Replace the matched text in the masked_message variable with "account [REDACTED]"
+masked_message = re.sub(any_content_pattern, r'\1[REDACTED]', masked_message)
 
 # Create the comment string
 comment = masked_message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + masked_logs
