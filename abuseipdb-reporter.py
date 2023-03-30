@@ -35,7 +35,7 @@ import socket
 import re
 import subprocess
 
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -56,7 +56,7 @@ short_hostname = socket.gethostname()
 
 # Define dummy mask hostname and IP
 mask_hostname = "MASKED_HOSTNAME"
-mask_ip = "0.0.0.0"
+mask_ip = "0.0.0.x"
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='AbuseIPDB reporter script.')
@@ -79,12 +79,20 @@ if len(args.arguments) < 8:
     log_message(args.log_file, "Usage: {} [-log LOG_FILE] IP PORTS INOUT MESSAGE LOGS TRIGGER".format(sys.argv[0]))
     sys.exit(1)
 
+# Defining the api-endpoint
+url = 'https://api.abuseipdb.com/api/v2/report'
 # Assign values to variables after checking for required arguments
 ports = args.arguments[1]
 inOut = args.arguments[3]
 message = args.arguments[5]
 logs = args.arguments[6]
 trigger = args.arguments[7]
+
+print("Ports:", ports)
+print("In/Out:", inOut)
+print("Message:", message)
+print("Logs:", logs)
+print("Trigger:", trigger)
 
 def get_all_public_ips():
     try:
@@ -98,20 +106,6 @@ def get_all_public_ips():
         sys.exit(1)
 
 public_ips = get_all_public_ips()
-
-# Defining the api-endpoint
-url = 'https://api.abuseipdb.com/api/v2/report'
-ports = args.arguments[1]
-inOut = args.arguments[3]
-message = args.arguments[5]
-logs = args.arguments[6]
-trigger = args.arguments[7]
-
-print("Ports:", ports)
-print("In/Out:", inOut)
-print("Message:", message)
-print("Logs:", logs)
-print("Trigger:", trigger)
 
 # Get the values from the csf.conf file
 with open('/etc/csf/csf.conf') as f:
@@ -247,13 +241,16 @@ else:
     decodedResponse = json.loads(response.text)
     if LOG_API_REQUEST:
         with open(DEFAULT_APILOG_FILE, 'a') as f:
+            f.write("############################################################################\n")
+            f.write("Version: {}\n".format(VERSION))
             f.write("API Request Sent:\n")
             f.write("URL: {}\n".format(url))
             f.write("Headers: {}\n".format(headers))
             f.write("IP: {}\n".format(args.arguments[0]))
             f.write("Categories: {}\n".format(categories))
             f.write("Comment: {}\n".format(masked_comment))
-            f.write("----\n")
+            f.write("############################################################################\n")
+            f.write("--------\n")
 
     if response.status_code == 200:
         print(json.dumps(decodedResponse['data'], sort_keys=True, indent=4))
