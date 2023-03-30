@@ -38,7 +38,7 @@ import configparser
 import os
 import atexit
 
-VERSION = "0.1.5"
+VERSION = "0.1.6"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -207,6 +207,11 @@ masked_logs = filtered_logs.replace(short_hostname, mask_hostname).replace(full_
 
 for ip in public_ips:
     masked_logs = masked_logs.replace(ip, mask_ip)
+
+# Create a regex pattern to match the desired text for any username
+any_username_pattern = r'((?:\buser=|Failed password for (?:invalid user )?|Invalid user ))(\w+)'
+# Replace the matched text in the masked_logs variable with "user [USERNAME]"
+masked_logs = re.sub(any_username_pattern, r'\1[USERNAME]', masked_logs)
 
 # Extract the destination IP from the log message and apply the change only if the trigger is 'PS_LIMIT'
 if trigger == 'PS_LIMIT':
