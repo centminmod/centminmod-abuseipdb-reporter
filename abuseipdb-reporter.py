@@ -38,7 +38,7 @@ import configparser
 import os
 import atexit
 
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -70,7 +70,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Read settings from the settings.ini file in the same directory as the script
 config = configparser.ConfigParser()
-config.read(os.path.join(script_dir, 'settings.ini'))
+config.read(os.path.join(script_dir, 'abuseipdb-reporter.ini'))
 
 # Override default settings if present in the settings file
 if config.has_option('settings', 'DEBUG'):
