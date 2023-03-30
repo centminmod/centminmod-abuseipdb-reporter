@@ -57,7 +57,15 @@ Ensure `/root/tools/abuseipdb-reporter.py` is executable using `chmod`:
 chmod +x /root/tools/abuseipdb-reporter.py
 ```
 
-Edit the `/root/tools/abuseipdb-reporter.py` script's variables:
+Or clone this repo:
+
+```
+cd /home
+git clone https://github.com/centminmod/centminmod-abuseipdb-reporter
+cd /home/centminmod-abuseipdb-reporter
+```
+
+Edit the `/root/tools/abuseipdb-reporter.py` or `/home/centminmod-abuseipdb-reporter/abuseipdb-reporter.py` script's variables:
 
 * `DEBUG = True` - When set to `True`, debug mode is enabled and no actual CSF Firewall block actions will be sent to AbuseIPDB via API endpoint url. Instead block actions will be saved to a local log file `/var/log/abuseipdb-reporter-debug.log`. You can use this mode for troubleshooting or testing before you eventually set `DEBUG = False` to enable actual CSF Firewall block actions to be sent to AbuseIPDB via API endpoint url.
 * `API_KEY = 'YOUR_API_KEY'` - Set `YOUR_API_KEY` to your AbuseIPDB API key
@@ -70,6 +78,7 @@ Data logging of processed data that AbuseIPDB will receive (`DEBUG MODE: data in
 cat /var/log/abuseipdb-reporter-debug.log
 
 ############################################################################
+Version: 0.1.0
 DEBUG MODE: data intended to be sent to AbuseIPDB
 URL: https://api.abuseipdb.com/api/v2/report
 Headers: {'Accept': 'application/json', 'Key': 'YOUR_API_KEY'}
@@ -106,6 +115,7 @@ For folks using CSF Cluster Mode, the `abuseipdb-reporter.py` script will also p
 cat /var/log/abuseipdb-reporter-debug.log
 
 ############################################################################
+Version: 0.1.0
 DEBUG MODE: data intended to be sent to AbuseIPDB
 URL: https://api.abuseipdb.com/api/v2/report
 Headers: {'Accept': 'application/json', 'Key': 'YOUR_API_KEY'}
@@ -145,9 +155,14 @@ ARG 8 = trigger   # The configuration settings triggered
 BLOCK_REPORT = "/root/tools/abuseipdb-reporter.py"
 ```
 
+or
+
+```
+BLOCK_REPORT = "/home/centminmod-abuseipdb-reporter/abuseipdb-reporter.py"
+```
+
 restart CSF and lfd using:
 
 ```
 csf -ra
 ```
-
