@@ -34,8 +34,11 @@ import argparse
 import socket
 import re
 import subprocess
+import configparser
+import os
+import atexit
 
-VERSION = "0.1.2"
+VERSION = "0.1.3"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -43,10 +46,14 @@ VERSION = "0.1.2"
 DEBUG = True
 LOG_API_REQUEST = True
 LOG_MODE = 'full'
+# JSON_LOG_FORMAT can be set to False to write to DEFAULT_LOG_FILE
+# or True to write to DEFAULT_JSONLOG_FILE defined log path below
+JSON_LOG_FORMAT = False
 # Set your API key and default log file path here
 # https://www.abuseipdb.com/account/api
 API_KEY = 'YOUR_API_KEY'
 DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'
+DEFAULT_JSONLOG_FILE = '/var/log/abuseipdb-reporter-debug-json.log'
 DEFAULT_APILOG_FILE = '/var/log/abuseipdb-reporter-api.log'
 
 # Set privacy masks
@@ -57,6 +64,44 @@ short_hostname = socket.gethostname()
 # Define dummy mask hostname and IP
 mask_hostname = "MASKED_HOSTNAME"
 mask_ip = "0.0.0.x"
+
+# Get the absolute path of the script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Read settings from the settings.ini file in the same directory as the script
+config = configparser.ConfigParser()
+config.read(os.path.join(script_dir, 'settings.ini'))
+
+# Override default settings if present in the settings file
+if config.has_option('settings', 'DEBUG'):
+    DEBUG = config.getboolean('settings', 'DEBUG')
+
+if config.has_option('settings', 'LOG_API_REQUEST'):
+    LOG_API_REQUEST = config.getboolean('settings', 'LOG_API_REQUEST')
+
+if config.has_option('settings', 'LOG_MODE'):
+    LOG_MODE = config.get('settings', 'LOG_MODE')
+
+if config.has_option('settings', 'JSON_LOG_FORMAT'):
+    JSON_LOG_FORMAT = config.getboolean('settings', 'JSON_LOG_FORMAT')
+
+if config.has_option('settings', 'API_KEY'):
+    API_KEY = config.get('settings', 'API_KEY')
+
+if config.has_option('settings', 'DEFAULT_LOG_FILE'):
+    DEFAULT_LOG_FILE = config.get('settings', 'DEFAULT_LOG_FILE')
+
+if config.has_option('settings', 'DEFAULT_JSONLOG_FILE'):
+    DEFAULT_JSONLOG_FILE = config.get('settings', 'DEFAULT_JSONLOG_FILE')
+
+if config.has_option('settings', 'DEFAULT_APILOG_FILE'):
+    DEFAULT_APILOG_FILE = config.get('settings', 'DEFAULT_APILOG_FILE')
+
+if config.has_option('settings', 'mask_hostname'):
+    mask_hostname = config.get('settings', 'mask_hostname')
+
+if config.has_option('settings', 'mask_ip'):
+    mask_ip = config.get('settings', 'mask_ip')
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='AbuseIPDB reporter script.')
@@ -216,26 +261,67 @@ querystring = {
     'comment': masked_comment
 }
 
+def is_log_file_valid(file_path):
+    if not os.path.exists(file_path):
+        return False
+
+    with open(file_path, 'rb') as f:
+        f.seek(-2, os.SEEK_END)
+        last_chars = f.read().decode()
+
+    return last_chars == "\n]"
+
+
 if DEBUG:
-    with open(args.log_file, 'a') as f:
-        f.write("############################################################################\n")
-        f.write("Version: {}\n".format(VERSION))
-        f.write("DEBUG MODE: data intended to be sent to AbuseIPDB\n")
-        f.write("URL: {}\n".format(url))
-        f.write("Headers: {}\n".format(headers))
-        f.write("IP: {}\n".format(args.arguments[0]))
-        f.write("Categories: {}\n".format(categories))
-        f.write("Comment: {}\n".format(masked_comment))
-        f.write("---------------------------------------------------------------------------\n")
-        f.write("DEBUG MODE: CSF passed data not sent to AbuseIPDB\n")
-        f.write("Ports: {}\n".format(ports))
-        f.write("In/Out: {}\n".format(inOut))
-        f.write("Message: {}\n".format(message))
-        f.write("Logs: {}\n".format(logs))
-        f.write("Trigger: {}\n".format(trigger))
-        f.write("############################################################################\n")
-        f.write("--------\n")
-    print("DEBUG MODE: No actual report sent. Data saved to '{}'.".format(args.log_file))
+    log_data = {
+        "sentVersion": VERSION,
+        "sentURL": url,
+        "sentHeaders": headers,
+        "sentIP": args.arguments[0],
+        "sentCategories": categories,
+        "sentComment": masked_comment,
+        "notsentPorts": ports,
+        "notsentInOut": inOut,
+        "notsentMessage": message,
+        "notsentLogs": logs,
+        "notsentTrigger": trigger
+    }
+
+    if JSON_LOG_FORMAT:
+        if is_log_file_valid(DEFAULT_JSONLOG_FILE):
+            # Remove the last closing bracket ']'
+            with open(DEFAULT_JSONLOG_FILE, 'rb+') as f:
+                f.seek(-2, os.SEEK_END)
+                f.truncate()
+            # Append the new log entry followed by a comma and a newline
+            with open(DEFAULT_JSONLOG_FILE, 'a') as f:
+                f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")
+        else:
+            # Create a new log file with a single log entry
+            with open(DEFAULT_JSONLOG_FILE, 'w') as f:
+                f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
+
+        print("DEBUG MODE: No actual report sent. JSON data saved to '{}'.".format(DEFAULT_JSONLOG_FILE))
+    else:
+        with open(args.log_file, 'a') as f:
+            f.write("############################################################################\n")
+            f.write("Version: {}\n".format(VERSION))
+            f.write("DEBUG MODE: data intended to be sent to AbuseIPDB\n")
+            f.write("URL: {}\n".format(url))
+            f.write("Headers: {}\n".format(headers))
+            f.write("IP: {}\n".format(args.arguments[0]))
+            f.write("Categories: {}\n".format(categories))
+            f.write("Comment: {}\n".format(masked_comment))
+            f.write("---------------------------------------------------------------------------\n")
+            f.write("DEBUG MODE: CSF passed data not sent to AbuseIPDB\n")
+            f.write("Ports: {}\n".format(ports))
+            f.write("In/Out: {}\n".format(inOut))
+            f.write("Message: {}\n".format(message))
+            f.write("Logs: {}\n".format(logs))
+            f.write("Trigger: {}\n".format(trigger))
+            f.write("############################################################################\n")
+            f.write("--------\n")
+        print("DEBUG MODE: No actual report sent. Data saved to '{}'.".format(args.log_file))
 else:
     response = requests.post(url, headers=headers, params=querystring)
     decodedResponse = json.loads(response.text)
