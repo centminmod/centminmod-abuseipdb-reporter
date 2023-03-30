@@ -11,15 +11,13 @@ Centmin Mod users on CentOS 7.x, can install Python 3.x via `addons/python36_ins
 
 ```
 /usr/local/src/centminmod/addons/python36_install.sh
+pip3 install requests
 ```
 
 Or if on EL8+, can install Python 3 via
 
 ```
 yum -y install python3
-```
-
-```
 pip3 install requests
 ```
 
