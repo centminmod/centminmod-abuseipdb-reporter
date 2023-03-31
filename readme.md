@@ -41,6 +41,20 @@ Register an account with AbuseIPDB, and [create an API key](https://www.abuseipd
 
 2. Integrating AbuseIPDB Blocklist Into CSF Firewall
 
+AbuseIPDB API has daily API usage limits for free and paid plans outlined at https://www.abuseipdb.com/pricing. For webmaster verified free plan the daily API usage limits are outlined in below table. The `blacklist` quota is what the blocklists will consume. While the below steps to report bad IP addresses will consume the `reports` quota of 3,000/day on webmaster verified free plan.
+
+| Endpoint      | Usage / Daily Limit | Utilization Rate |
+|---------------|---------------------|------------------|
+| check         | 0 / 3,000           | 0%               |
+| reports       | 0 / 500             | 0%               |
+| blacklist     | 0 / 10              | 0%              |
+| report        | 0 / 3,000           | 0%               |
+| check-block   | 0 / 1,000           | 0%               |
+| bulk-report   | 0 / 10              | 0%               |
+| clear-address | 0 / 10              | 0%               |
+
+To use the CSF Firewall blocklist feature with AbuseIPDB database blocklist, do the following:
+
 Edit `/etc/csf/csf.blocklists` and add blocklist for AbuseIPD and change `YOUR_API_KEY` to your API Key from step 1.
 
 ```
@@ -112,10 +126,12 @@ DEBUG = True
 LOG_API_REQUEST = True
 LOG_MODE = full
 JSON_LOG_FORMAT = False
+JSON_APILOG_FORMAT = False
 API_KEY = YOUR_API_KEY
 DEFAULT_LOG_FILE = /var/log/abuseipdb-reporter-debug.log
 DEFAULT_JSONLOG_FILE = /var/log/abuseipdb-reporter-debug-json.log
 DEFAULT_APILOG_FILE = /var/log/abuseipdb-reporter-api.log
+DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'
 mask_hostname = MASKED_HOSTNAME
 mask_ip = 0.0.0.x
 USERNAME_REPLACEMENT = '[USERNAME]'

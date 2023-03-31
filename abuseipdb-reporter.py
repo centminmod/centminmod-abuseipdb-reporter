@@ -37,8 +37,9 @@ import subprocess
 import configparser
 import os
 import atexit
+from urllib.parse import quote
 
-VERSION = "0.1.8"
+VERSION = "0.1.9"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -49,12 +50,14 @@ LOG_MODE = 'full'
 # JSON_LOG_FORMAT can be set to False to write to DEFAULT_LOG_FILE
 # or True to write to DEFAULT_JSONLOG_FILE defined log path below
 JSON_LOG_FORMAT = False
+JSON_APILOG_FORMAT = False
 # Set your API key and default log file path here
 # https://www.abuseipdb.com/account/api
 API_KEY = 'YOUR_API_KEY'
 DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'
 DEFAULT_JSONLOG_FILE = '/var/log/abuseipdb-reporter-debug-json.log'
 DEFAULT_APILOG_FILE = '/var/log/abuseipdb-reporter-api.log'
+DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'
 
 # Set the replacement words to mask data that references
 # usernames and account usernames
@@ -101,6 +104,12 @@ if config.has_option('settings', 'DEFAULT_JSONLOG_FILE'):
 
 if config.has_option('settings', 'DEFAULT_APILOG_FILE'):
     DEFAULT_APILOG_FILE = config.get('settings', 'DEFAULT_APILOG_FILE')
+
+if config.has_option('settings', 'JSON_APILOG_FORMAT'):
+    JSON_APILOG_FORMAT = config.getboolean('settings', 'JSON_APILOG_FORMAT')
+
+if config.has_option('settings', 'DEFAULT_JSONAPILOG_FILE'):
+    DEFAULT_JSONAPILOG_FILE = config.get('settings', 'DEFAULT_JSONAPILOG_FILE')
 
 if config.has_option('settings', 'mask_hostname'):
     mask_hostname = config.get('settings', 'mask_hostname')
@@ -278,8 +287,10 @@ elif 'PS_LIMIT' in trigger:
 elif 'LF_DISTSMTP' in trigger:
     categories = '18'
 
+url_encoded_ip = quote(args.arguments[0])
+
 querystring = {
-    'ip': args.arguments[0],
+    'ip': url_encoded_ip,
     'categories': categories,
     'comment': masked_comment
 }
@@ -301,6 +312,7 @@ if DEBUG:
         "sentURL": url,
         "sentHeaders": headers,
         "sentIP": args.arguments[0],
+        "sentIPencoded": url_encoded_ip,
         "sentCategories": categories,
         "sentComment": masked_comment,
         "notsentPorts": ports,
@@ -333,6 +345,7 @@ if DEBUG:
             f.write("URL: {}\n".format(url))
             f.write("Headers: {}\n".format(headers))
             f.write("IP: {}\n".format(args.arguments[0]))
+            f.write("IPencoded: {}\n".format(url_encoded_ip))
             f.write("Categories: {}\n".format(categories))
             f.write("Comment: {}\n".format(masked_comment))
             f.write("---------------------------------------------------------------------------\n")
@@ -349,17 +362,42 @@ else:
     response = requests.post(url, headers=headers, params=querystring)
     decodedResponse = json.loads(response.text)
     if LOG_API_REQUEST:
-        with open(DEFAULT_APILOG_FILE, 'a') as f:
-            f.write("############################################################################\n")
-            f.write("Version: {}\n".format(VERSION))
-            f.write("API Request Sent:\n")
-            f.write("URL: {}\n".format(url))
-            f.write("Headers: {}\n".format(headers))
-            f.write("IP: {}\n".format(args.arguments[0]))
-            f.write("Categories: {}\n".format(categories))
-            f.write("Comment: {}\n".format(masked_comment))
-            f.write("############################################################################\n")
-            f.write("--------\n")
+        log_data = {
+            "sentVersion": VERSION,
+            "sentURL": url,
+            "sentHeaders": headers,
+            "sentIP": args.arguments[0],
+            "sentIPencoded": url_encoded_ip,
+            "sentCategories": categories,
+            "sentComment": masked_comment,
+        }
+
+        if JSON_APILOG_FORMAT:
+            if is_log_file_valid(DEFAULT_JSONAPILOG_FILE):
+                # Remove the last closing bracket ']'
+                with open(DEFAULT_JSONAPILOG_FILE, 'rb+') as f:
+                    f.seek(-2, os.SEEK_END)
+                    f.truncate()
+                # Append the new log entry followed by a comma and a newline
+                with open(DEFAULT_JSONAPILOG_FILE, 'a') as f:
+                    f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")
+            else:
+                # Create a new log file with a single log entry
+                with open(DEFAULT_JSONAPILOG_FILE, 'w') as f:
+                    f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
+        else:
+            with open(DEFAULT_APILOG_FILE, 'a') as f:
+                f.write("############################################################################\n")
+                f.write("Version: {}\n".format(VERSION))
+                f.write("API Request Sent:\n")
+                f.write("URL: {}\n".format(url))
+                f.write("Headers: {}\n".format(headers))
+                f.write("IP: {}\n".format(args.arguments[0]))
+                f.write("IPencoded: {}\n".format(url_encoded_ip))
+                f.write("Categories: {}\n".format(categories))
+                f.write("Comment: {}\n".format(masked_comment))
+                f.write("############################################################################\n")
+                f.write("--------\n")
 
     if response.status_code == 200:
         print(json.dumps(decodedResponse['data'], sort_keys=True, indent=4))
