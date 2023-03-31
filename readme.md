@@ -2,6 +2,8 @@
 
 Based on CSF Firewall and AbuseIPDB integration guide at https://www.abuseipdb.com/csf. Tailored for Centmin Mod LEMP stack based servers.
 
+This guide will show you how to set up CSF Firewall so that attempted intrusions against your system are automatically blocked by CSF's Login Failure Daemon (lfd) logged actions. It is also possible to use CSF Firewall to pre-emptively block bad IP addresses using [CSF Firewall's blocklist feature and AbuseIPDB's collated blocklist database](#setup).
+
 * [Dependencies](#dependencies)
 * [Setup](#setup)
 * [Configuration](#configuration)
@@ -121,6 +123,22 @@ ACCOUNT_REPLACEMENT = '[REDACTED]'
 ```
 
 ## Example
+
+CSF Firewall when it's `lfd` process detects and logs a block action from bad IPs usually just blocks the request and adds an entry into `/var/log/lfd.log` log. However, you can configure CSF Firewall to also pass that `lfd` block action data i.e. IP address etc and send it to a defined custom script (`abuseipdb-reporter.py`) setup assigned to variable `BLOCK_REPORT` in your CSF config file `/etc/csf/csf.conf`.
+
+CSF Firewall passes data to `BLOCK_REPORT` defined script for the following arguments:
+
+```
+ARG 1 = IP Address  # The IP address or CIDR being blocked
+ARG 2 = ports   # Port, comma separated list or * for all ports
+ARG 3 = permanent # 0=temporary block, 1=permanent block
+ARG 4 = inout   # Direction of block: in, out or inout
+ARG 5 = timeout   # If a temporary block, TTL in seconds, otherwise 0
+ARG 6 = message   # Message containing reason for block
+ARG 7 = logs    # The logs lines that triggered the block (will contain
+                        # line feeds between each log line)
+ARG 8 = trigger   # The configuration settings triggered
+```
 
 Example of `DEBUG = True` debug mode with `JSON_LOG_FORMAT = False` saved log file entries at `/var/log/abuseipdb-reporter-debug.log` 
 
@@ -293,20 +311,6 @@ Example of `DEBUG = True` debug mode with `JSON_LOG_FORMAT = True` saved log fil
 ```
 
 For JSON format, the key names prefixed with `sent` are data that is sent to AbuseIPDB. While key names prefixed with `notsent` is data CSF passed onto the script. The CSF passed data also reveals your Cluster member's real IP address `45.xxx.xxx.xxx`. The `abuseipdb-reporter.py` script will remove that and the full line `Cluster member 45.xxx.xxx.xxx (US/United States/-) said,` from the data intended to be sent to AbuseIPDB so it doesn't reveal your CSF Cluster member IP addresses.
-
-CSF Firewall passes data to `BLOCK_REPORT` script for the following arguments:
-
-```
-ARG 1 = IP Address  # The IP address or CIDR being blocked
-ARG 2 = ports   # Port, comma separated list or * for all ports
-ARG 3 = permanent # 0=temporary block, 1=permanent block
-ARG 4 = inout   # Direction of block: in, out or inout
-ARG 5 = timeout   # If a temporary block, TTL in seconds, otherwise 0
-ARG 6 = message   # Message containing reason for block
-ARG 7 = logs    # The logs lines that triggered the block (will contain
-                        # line feeds between each log line)
-ARG 8 = trigger   # The configuration settings triggered
-```
 
 4. Set the `BLOCK_REPORT` variable in `/etc/csf.conf` to the executable script file.
 
