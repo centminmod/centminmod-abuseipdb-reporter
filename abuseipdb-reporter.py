@@ -38,7 +38,7 @@ import configparser
 import os
 import atexit
 
-VERSION = "0.1.7"
+VERSION = "0.1.8"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -267,6 +267,8 @@ elif 'LF_DISTATTACK' in trigger:
     categories = '4'
 elif 'LF_SMTPAUTH' in trigger:
     categories = '18'
+elif 'LF_DISTFTP' in trigger:
+    categories = '5'
 elif 'LF_FTPD' in trigger:
     categories = '5'
 elif 'LF_MODSEC' in trigger:
