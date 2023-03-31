@@ -39,7 +39,7 @@ import os
 import atexit
 from urllib.parse import quote
 
-VERSION = "0.1.9"
+VERSION = "0.2.0"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -361,6 +361,7 @@ if DEBUG:
 else:
     response = requests.post(url, headers=headers, params=querystring)
     decodedResponse = json.loads(response.text)
+    
     if LOG_API_REQUEST:
         log_data = {
             "sentVersion": VERSION,
@@ -370,6 +371,7 @@ else:
             "sentIPencoded": url_encoded_ip,
             "sentCategories": categories,
             "sentComment": masked_comment,
+            "apiResponse": decodedResponse
         }
 
         if JSON_APILOG_FORMAT:
@@ -396,6 +398,7 @@ else:
                 f.write("IPencoded: {}\n".format(url_encoded_ip))
                 f.write("Categories: {}\n".format(categories))
                 f.write("Comment: {}\n".format(masked_comment))
+                f.write("API Response: {}\n".format(json.dumps(decodedResponse, indent=2)))
                 f.write("############################################################################\n")
                 f.write("--------\n")
 
