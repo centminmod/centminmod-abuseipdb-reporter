@@ -11,6 +11,7 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
   * [Example](#example)
   * [JSON log format](#json-log-format)
     * [Parsing JSON formatted logs](#parsing-json-formatted-logs)
+      * [Convert JSON Format Back To Non-JSON Format](#convert-json-format-back-to-non-json-format)
 * [CSF Cluster Mode](#csf-cluster-mode)
   * [JSON log format CSF Cluster](#json-log-format-csf-cluster)
 
