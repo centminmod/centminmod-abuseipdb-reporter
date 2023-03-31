@@ -2,6 +2,16 @@
 
 Based on CSF Firewall and AbuseIPDB integration guide at https://www.abuseipdb.com/csf. Tailored for Centmin Mod LEMP stack based servers.
 
+* [Dependencies](#dependencies)
+* [Setup](#setup)
+* [Configuration](#configuration)
+  * [abuseipdb-reporter.ini](#abuseipdb-reporterini)
+  * [Example](#example)
+  * [JSON log format](#json-log-format)
+    * [Parsing JSON formatted logs](#parsing-json-formatted-logs)
+* [CSF Cluster Mode](#csf-cluster-mode)
+  * [JSON log format CSF Cluster](#json-log-format-csf-cluster)
+
 ## Dependencies
 
 Python 3.x required as well as `requests` module:
@@ -77,8 +87,8 @@ Edit the `/root/tools/abuseipdb-reporter.py` or `/home/centminmod-abuseipdb-repo
 * `DEBUG = True` - When set to `True`, debug mode is enabled and no actual CSF Firewall block actions will be sent to AbuseIPDB via API endpoint url. Instead block actions will be saved to a local log file `/var/log/abuseipdb-reporter-debug.log`. You can use this mode for troubleshooting or testing before you eventually set `DEBUG = False` to enable actual CSF Firewall block actions to be sent to AbuseIPDB via API endpoint url.
 * `API_KEY = 'YOUR_API_KEY'` - Set `YOUR_API_KEY` to your AbuseIPDB API key
 * `JSON_LOG_FORMAT = False` - Set to `False` by default to save `DEBUG = True` debug log to specified `DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'`. When set to `True` will save in JSON format to specified `DEFAULT_JSONLOG_FILE = '/var/log/abuseipdb-reporter-debug-json.log'` log file instead. The JSON log format makes parsing and filtering the debug log easier [JSON format demo](#json-log-format) and [CSF Cluster JSON format demo](#json-log-format-csf-cluster).
-* `USERNAME_REPLACEMENT = '[USERNAME]'` - for privacy masking, Linux usernames are masked before being sent to AbuseIPDB, this the replacement word value that is the replacement.
-* `ACCOUNT_REPLACEMENT = '[REDACTED]'` - for privacy masking, Linux account usernames are masked before being sent to AbuseIPDB, this the replacement word value that is the replacement.
+* `USERNAME_REPLACEMENT = '[USERNAME]'` - for privacy masking, Linux usernames are masked before being sent to AbuseIPDB, this is the replacement word value.
+* `ACCOUNT_REPLACEMENT = '[REDACTED]'` - for privacy masking, Linux account usernames are masked before being sent to AbuseIPDB, this is the replacement word value.
 
 Example of `USERNAME_REPLACEMENT = '[USERNAME]'` privacy masking the Comments details
 
@@ -126,17 +136,17 @@ URL: https://api.abuseipdb.com/api/v2/report
 Headers: {'Accept': 'application/json', 'Key': 'YOUR_API_KEY'}
 IP: 1.34.234.1
 Categories: 22
-Comment: (sshd) Failed SSH login from 1.34.234.1 (TW/Taiwan/1-34-234-1.hinet-ip.hinet.net): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 28 23:52:08 sshd[548999]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=1.34.234.1  user=root
-Mar 28 23:52:11 sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
-Mar 28 23:52:14 sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
-Mar 28 23:52:19 sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
-Mar 28 23:52:23 sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
+Comment: (sshd) Failed SSH login from 1.34.234.1 (TW/Taiwan/1-34-234-1.hinet-ip.hinet.net): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 28 23:52:08 sshd[548999]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=1.34.234.1  user=[USERNAME]
+Mar 28 23:52:11 sshd[548999]: Failed password for [USERNAME] from 1.34.234.1 port 43749 ssh2
+Mar 28 23:52:14 sshd[548999]: Failed password for [USERNAME] from 1.34.234.1 port 43749 ssh2
+Mar 28 23:52:19 sshd[548999]: Failed password for [USERNAME] from 1.34.234.1 port 43749 ssh2
+Mar 28 23:52:23 sshd[548999]: Failed password for [USERNAME] from 1.34.234.1 port 43749 ssh2
 ---------------------------------------------------------------------------
 DEBUG MODE: CSF passed data not sent to AbuseIPDB
 Ports: *
 In/Out: inout
 Message: (sshd) Failed SSH login from 1.34.234.1 (TW/Taiwan/1-34-234-1.hinet-ip.hinet.net): 5 in the last 3600 secs
-Logs: Mar 28 23:52:08 hostname sshd[548999]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=1.34.234.1  user=root
+Logs: Mar 28 23:52:08 hostname sshd[548999]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=1.34.234.1  user=[USERNAME]
 Mar 28 23:52:11 hostname sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
 Mar 28 23:52:14 hostname sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
 Mar 28 23:52:19 hostname sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
@@ -164,7 +174,7 @@ Example of `DEBUG = True` debug mode with `JSON_LOG_FORMAT = True` saved log fil
     },
     "sentIP": "165.154.247.162",
     "sentCategories": "22",
-    "sentComment": "(sshd) Failed SSH login from 165.154.247.162 (TH/Thailand/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 30 06:07:54 sshd[617133]: Invalid user vr from 165.154.247.162 port 41276\nMar 30 06:07:56 sshd[617133]: Failed password for invalid user vr from 165.154.247.162 port 41276 ssh2\nMar 30 06:09:36 sshd[617167]: Invalid user user from 165.154.247.162 port 38986\nMar 30 06:09:39 sshd[617167]: Failed password for invalid user user from 165.154.247.162 port 38986 ssh2\nMar 30 06:10:55 sshd[617254]: Invalid user administrator from 165.154.247.162 port 34516",
+    "sentComment": "(sshd) Failed SSH login from 165.154.247.162 (TH/Thailand/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 30 06:07:54 sshd[617133]: Invalid user [USERNAME] from 165.154.247.162 port 41276\nMar 30 06:07:56 sshd[617133]: Failed password for invalid user [USERNAME] from 165.154.247.162 port 41276 ssh2\nMar 30 06:09:36 sshd[617167]: Invalid user [USERNAME] from 165.154.247.162 port 38986\nMar 30 06:09:39 sshd[617167]: Failed password for invalid user [USERNAME] from 165.154.247.162 port 38986 ssh2\nMar 30 06:10:55 sshd[617254]: Invalid user administrator from 165.154.247.162 port 34516",
     "notsentPorts": "*",
     "notsentInOut": "inout",
     "notsentMessage": "(sshd) Failed SSH login from 165.154.247.162 (TH/Thailand/-): 5 in the last 3600 secs",
