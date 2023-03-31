@@ -77,6 +77,8 @@ Edit the `/root/tools/abuseipdb-reporter.py` or `/home/centminmod-abuseipdb-repo
 * `DEBUG = True` - When set to `True`, debug mode is enabled and no actual CSF Firewall block actions will be sent to AbuseIPDB via API endpoint url. Instead block actions will be saved to a local log file `/var/log/abuseipdb-reporter-debug.log`. You can use this mode for troubleshooting or testing before you eventually set `DEBUG = False` to enable actual CSF Firewall block actions to be sent to AbuseIPDB via API endpoint url.
 * `API_KEY = 'YOUR_API_KEY'` - Set `YOUR_API_KEY` to your AbuseIPDB API key
 * `JSON_LOG_FORMAT = False` - Set to `False` by default to save `DEBUG = True` debug log to specified `DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'`. When set to `True` will save in JSON format to specified `DEFAULT_JSONLOG_FILE = '/var/log/abuseipdb-reporter-debug-json.log'` log file instead. The JSON log format makes parsing and filtering the debug log easier [JSON format demo](#json-log-format) and [CSF Cluster JSON format demo](#json-log-format-csf-cluster).
+* `USERNAME_REPLACEMENT = '[USERNAME]'` - for privacy masking, Linux usernames are masked before being sent to AbuseIPDB, this the replacement word value that is the replacement.
+* `ACCOUNT_REPLACEMENT = '[REDACTED]'` - for privacy masking, Linux account usernames are masked before being sent to AbuseIPDB, this the replacement word value that is the replacement.
 
 ## abuseipdb-reporter.ini
 
