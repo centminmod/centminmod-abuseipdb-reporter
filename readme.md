@@ -164,34 +164,35 @@ Data logging of processed data that AbuseIPDB will receive (`DEBUG MODE: data in
 cat /var/log/abuseipdb-reporter-debug.log
 
 ############################################################################
-Version: 0.1.0
+Version: 0.2.0
 DEBUG MODE: data intended to be sent to AbuseIPDB
 URL: https://api.abuseipdb.com/api/v2/report
-Headers: {'Accept': 'application/json', 'Key': 'YOUR_API_KEY'}
-IP: 1.34.234.1
+Headers: {"Accept":"application/json","Key":"YOUR_API_KEY"}
+IP: 147.182.171.152
+IPencoded: 147.182.171.152
 Categories: 22
-Comment: (sshd) Failed SSH login from 1.34.234.1 (TW/Taiwan/1-34-234-1.hinet-ip.hinet.net): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 28 23:52:08 sshd[548999]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=1.34.234.1  user=[USERNAME]
-Mar 28 23:52:11 sshd[548999]: Failed password for [USERNAME] from 1.34.234.1 port 43749 ssh2
-Mar 28 23:52:14 sshd[548999]: Failed password for [USERNAME] from 1.34.234.1 port 43749 ssh2
-Mar 28 23:52:19 sshd[548999]: Failed password for [USERNAME] from 1.34.234.1 port 43749 ssh2
-Mar 28 23:52:23 sshd[548999]: Failed password for [USERNAME] from 1.34.234.1 port 43749 ssh2
+Comment: (sshd) Failed SSH login from 147.182.171.152 (US/United States/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 31 22:48:39 sshd[655144]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=[USERNAME]
+Mar 31 22:48:41 sshd[655144]: Failed password for [USERNAME] from 147.182.171.152 port 34306 ssh2
+Mar 31 22:51:24 sshd[655193]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=[USERNAME]
+Mar 31 22:51:26 sshd[655193]: Failed password for [USERNAME] from 147.182.171.152 port 45160 ssh2
+Mar 31 22:52:30 sshd[655208]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=[USERNAME]
 ---------------------------------------------------------------------------
 DEBUG MODE: CSF passed data not sent to AbuseIPDB
 Ports: *
 In/Out: inout
-Message: (sshd) Failed SSH login from 1.34.234.1 (TW/Taiwan/1-34-234-1.hinet-ip.hinet.net): 5 in the last 3600 secs
-Logs: Mar 28 23:52:08 hostname sshd[548999]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=1.34.234.1  user=[USERNAME]
-Mar 28 23:52:11 hostname sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
-Mar 28 23:52:14 hostname sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
-Mar 28 23:52:19 hostname sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
-Mar 28 23:52:23 hostname sshd[548999]: Failed password for root from 1.34.234.1 port 43749 ssh2
+Message: (sshd) Failed SSH login from 147.182.171.152 (US/United States/-): 5 in the last 3600 secs
+Logs: Mar 31 22:48:39 hostname sshd[655144]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=root
+Mar 31 22:48:41 hostname sshd[655144]: Failed password for root from 147.182.171.152 port 34306 ssh2
+Mar 31 22:51:24 hostname sshd[655193]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=root
+Mar 31 22:51:26 hostname sshd[655193]: Failed password for root from 147.182.171.152 port 45160 ssh2
+Mar 31 22:52:30 hostname sshd[655208]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=root
 
 Trigger: LF_SSHD
 ############################################################################
 --------
 ```
 
-So CSF passed raw data for `hostname` and `1.34.234.1` but script will remove the `lfd.log` 4th field for `hostname` when sending to AbuseIPDB.
+So CSF passed raw data for `hostname` and `147.182.171.152` but script will remove the `lfd.log` 4th field for `hostname` when sending to AbuseIPDB.
 
 # JSON log format
 
@@ -200,25 +201,26 @@ Example of `DEBUG = True` debug mode with `JSON_LOG_FORMAT = True` saved log fil
 ```json
 [
   {
-    "sentVersion": "0.1.3",
+    "sentVersion": "0.2.0",
     "sentURL": "https://api.abuseipdb.com/api/v2/report",
     "sentHeaders": {
       "Accept": "application/json",
       "Key": "YOUR_API_KEY"
     },
-    "sentIP": "165.154.247.162",
+    "sentIP": "147.182.171.152",
+    "sentIPencoded": "147.182.171.152",
     "sentCategories": "22",
-    "sentComment": "(sshd) Failed SSH login from 165.154.247.162 (TH/Thailand/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 30 06:07:54 sshd[617133]: Invalid user [USERNAME] from 165.154.247.162 port 41276\nMar 30 06:07:56 sshd[617133]: Failed password for invalid user [USERNAME] from 165.154.247.162 port 41276 ssh2\nMar 30 06:09:36 sshd[617167]: Invalid user [USERNAME] from 165.154.247.162 port 38986\nMar 30 06:09:39 sshd[617167]: Failed password for invalid user [USERNAME] from 165.154.247.162 port 38986 ssh2\nMar 30 06:10:55 sshd[617254]: Invalid user administrator from 165.154.247.162 port 34516",
+  "sentComment": "(sshd) Failed SSH login from 147.182.171.152 (US/United States/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 31 22:48:39 sshd[655144]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=[USERNAME]\nMar 31 22:48:41 sshd[655144]: Failed password for [USERNAME] from 147.182.171.152 port 34306 ssh2\nMar 31 22:51:24 sshd[655193]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=[USERNAME]\nMar 31 22:51:26 sshd[655193]: Failed password for [USERNAME] from 147.182.171.152 port 45160 ssh2\nMar 31 22:52:30 sshd[655208]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser=   rhost=147.182.171.152  user=[USERNAME]",
     "notsentPorts": "*",
     "notsentInOut": "inout",
-    "notsentMessage": "(sshd) Failed SSH login from 165.154.247.162 (TH/Thailand/-): 5 in the last 3600 secs",
-    "notsentLogs": "Mar 30 06:07:54 hostname sshd[617133]: Invalid user vr from 165.154.247.162 port 41276\nMar 30 06:07:56 hostname sshd[617133]: Failed password for invalid user vr from 165.154.247.162 port 41276 ssh2\nMar 30 06:09:36 hostname sshd[617167]: Invalid user user from 165.154.247.162 port 38986\nMar 30 06:09:39 hostname sshd[617167]: Failed password for invalid user user from 165.154.247.162 port 38986 ssh2\nMar 30 06:10:55 hostname sshd[617254]: Invalid user administrator from 165.154.247.162 port 34516\n",
+    "notsentMessage": "(sshd) Failed SSH login from 147.182.171.152 (US/United States/-): 5 in the last 3600 secs",
+  "notsentLogs": "Mar 31 22:48:39 hostname sshd[655144]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=root\nMar 31 22:48:41 hostname sshd[655144]: Failed password for root from 147.182.171.152 port 34306 ssh2\nMar 31 22:51:24 hostname sshd[655193]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=root\nMar 31 22:51:26 hostname sshd[655193]: Failed password for root from 147.182.171.152 port 45160 ssh2\nMar 31 22:52:30 hostname sshd[655208]: pam_unix( sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=root\n",
     "notsentTrigger": "LF_SSHD"
   }
 ]
 ```
 
-For JSON format, the key names prefixed with `sent` are data that is sent to AbuseIPDB. While key names prefixed with `notsent` is data CSF passed onto the script. So CSF passed raw data for `hostname` and `165.154.247.162` but script will remove the `lfd.log` 4th field for `hostname` when sending to AbuseIPDB.
+For JSON format, the key names prefixed with `sent` are data that is sent to AbuseIPDB. While key names prefixed with `notsent` is data CSF passed onto the script. So CSF passed raw data for `hostname` and `147.182.171.152` but script will remove the `lfd.log` 4th field for `hostname` when sending to AbuseIPDB.
 
 ## Parsing JSON formatted logs
 
@@ -228,7 +230,7 @@ Get `sentIP` for each entry
 
 ```bash
 cat /var/log/abuseipdb-reporter-debug-json.log | jq -r '.[] | .sentIP'
-165.154.247.162
+147.182.171.152
 ```
 
 Only get `sentIP` and `sentCategories` for each entry
@@ -237,7 +239,7 @@ Only get `sentIP` and `sentCategories` for each entry
 cat /var/log/abuseipdb-reporter-debug-json.log | jq '[.[] | {sentIP, sentCategories}]'
 [
   {
-    "sentIP": "165.154.247.162",
+    "sentIP": "147.182.171.152",
     "sentCategories": "22"
   }
 ]
@@ -261,16 +263,87 @@ Only get entries where `notsentTrigger` != `LF_CLUSTER`
 cat /var/log/abuseipdb-reporter-debug-json.log | jq '.[] | select(.notsentTrigger != "LF_CLUSTER")'
 ```
 
-Only get entries where `notsentTrigger` = `LF_SSHD` and `sentIP` = `165.154.247.162`
+Only get entries where `notsentTrigger` = `LF_SSHD` and `sentIP` = `147.182.171.152`
 
 ```bash
-cat /var/log/abuseipdb-reporter-debug-json.log | jq '.[] | select(.notsentTrigger == "LF_SSHD" and .sentIP == "165.154.247.162")'
+cat /var/log/abuseipdb-reporter-debug-json.log | jq '.[] | select(.notsentTrigger == "LF_SSHD" and .sentIP == "147.182.171.152")'
 ```
 
 Only get entries where `sentCategories` = `22`
 
 ```bash
 cat /var/log/abuseipdb-reporter-debug-json.log | jq '.[] | select(.sentCategories == "22")'
+```
+
+### Convert JSON Format Back To Non-JSON Format
+
+You can even use `jq` to convert the JSON formatted entries back to the non-JSON format. If the JSON formatted entry for last entry in log is:
+
+```
+cat /var/log/abuseipdb-reporter-debug-json.log | jq -c '.[]'| tail -1 | jq -r
+```
+```json
+{
+  "sentVersion": "0.2.0",
+  "sentURL": "https://api.abuseipdb.com/api/v2/report",
+  "sentHeaders": {
+    "Accept": "application/json",
+    "Key": "YOUR_API_KEY"
+  },
+  "sentIP": "147.182.171.152",
+  "sentIPencoded": "147.182.171.152",
+  "sentCategories": "22",
+  "sentComment": "(sshd) Failed SSH login from 147.182.171.152 (US/United States/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 31 22:48:39 sshd[655144]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=[USERNAME]\nMar 31 22:48:41 sshd[655144]: Failed password for [USERNAME] from 147.182.171.152 port 34306 ssh2\nMar 31 22:51:24 sshd[655193]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=[USERNAME]\nMar 31 22:51:26 sshd[655193]: Failed password for [USERNAME] from 147.182.171.152 port 45160 ssh2\nMar 31 22:52:30 sshd[655208]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=[USERNAME]",
+  "notsentPorts": "*",
+  "notsentInOut": "inout",
+  "notsentMessage": "(sshd) Failed SSH login from 147.182.171.152 (US/United States/-): 5 in the last 3600 secs",
+  "notsentLogs": "Mar 31 22:48:39 hostname sshd[655144]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=root\nMar 31 22:48:41 hostname sshd[655144]: Failed password for root from 147.182.171.152 port 34306 ssh2\nMar 31 22:51:24 hostname sshd[655193]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=root\nMar 31 22:51:26 hostname sshd[655193]: Failed password for root from 147.182.171.152 port 45160 ssh2\nMar 31 22:52:30 hostname sshd[655208]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=root\n",
+  "notsentTrigger": "LF_SSHD"
+}
+```
+
+You can use command against last entry in log:
+
+```
+cat /var/log/abuseipdb-reporter-debug-json.log | jq -c '.[]'| tail -1 | jq -r '"############################################################################\nVersion: " + .sentVersion + "\nDEBUG MODE: data intended to be sent to AbuseIPDB\nURL: " + .sentURL + "\nHeaders: " + (.sentHeaders | tostring) + "\nIP: " + .sentIP + "\nIPencoded: " + .sentIPencoded + "\nCategories: " + (.sentCategories | tostring) + "\nComment: " + .sentComment + "\n---------------------------------------------------------------------------\nDEBUG MODE: CSF passed data not sent to AbuseIPDB\nPorts: " + .notsentPorts + "\nIn/Out: " + .notsentInOut + "\nMessage: " + .notsentMessage + "\nLogs: " + .notsentLogs + "\nTrigger: " + .notsentTrigger + "\n############################################################################\n--------"'
+```
+
+Returns converted output:
+
+```
+############################################################################
+Version: 0.2.0
+DEBUG MODE: data intended to be sent to AbuseIPDB
+URL: https://api.abuseipdb.com/api/v2/report
+Headers: {"Accept":"application/json","Key":"YOUR_API_KEY"}
+IP: 147.182.171.152
+IPencoded: 147.182.171.152
+Categories: 22
+Comment: (sshd) Failed SSH login from 147.182.171.152 (US/United States/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 31 22:48:39 sshd[655144]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=[USERNAME]
+Mar 31 22:48:41 sshd[655144]: Failed password for [USERNAME] from 147.182.171.152 port 34306 ssh2
+Mar 31 22:51:24 sshd[655193]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=[USERNAME]
+Mar 31 22:51:26 sshd[655193]: Failed password for [USERNAME] from 147.182.171.152 port 45160 ssh2
+Mar 31 22:52:30 sshd[655208]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=[USERNAME]
+---------------------------------------------------------------------------
+DEBUG MODE: CSF passed data not sent to AbuseIPDB
+Ports: *
+In/Out: inout
+Message: (sshd) Failed SSH login from 147.182.171.152 (US/United States/-): 5 in the last 3600 secs
+Logs: Mar 31 22:48:39 hostname sshd[655144]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=root
+Mar 31 22:48:41 hostname sshd[655144]: Failed password for root from 147.182.171.152 port 34306 ssh2
+Mar 31 22:51:24 hostname sshd[655193]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=root
+Mar 31 22:51:26 hostname sshd[655193]: Failed password for root from 147.182.171.152 port 45160 ssh2
+Mar 31 22:52:30 hostname sshd[655208]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=147.182.171.152  user=root
+
+Trigger: LF_SSHD
+############################################################################
+--------
+```
+
+For converting all JSON log entries to Non-JSON format, remove the `tail -1` filter for the command:
+
+```
+cat /var/log/abuseipdb-reporter-debug-json.log | jq -c '.[]' | jq -r '"############################################################################\nVersion: " + .sentVersion + "\nDEBUG MODE: data intended to be sent to AbuseIPDB\nURL: " + .sentURL + "\nHeaders: " + (.sentHeaders | tostring) + "\nIP: " + .sentIP + "\nIPencoded: " + .sentIPencoded + "\nCategories: " + (.sentCategories | tostring) + "\nComment: " + .sentComment + "\n---------------------------------------------------------------------------\nDEBUG MODE: CSF passed data not sent to AbuseIPDB\nPorts: " + .notsentPorts + "\nIn/Out: " + .notsentInOut + "\nMessage: " + .notsentMessage + "\nLogs: " + .notsentLogs + "\nTrigger: " + .notsentTrigger + "\n############################################################################\n--------"'
 ```
 
 ## CSF Cluster Mode
