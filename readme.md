@@ -94,6 +94,8 @@ DEFAULT_JSONLOG_FILE = /var/log/abuseipdb-reporter-debug-json.log
 DEFAULT_APILOG_FILE = /var/log/abuseipdb-reporter-api.log
 mask_hostname = MASKED_HOSTNAME
 mask_ip = 0.0.0.x
+USERNAME_REPLACEMENT = '[USERNAME]'
+ACCOUNT_REPLACEMENT = '[REDACTED]'
 ```
 
 ## Example

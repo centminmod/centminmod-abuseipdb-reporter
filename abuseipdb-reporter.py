@@ -38,7 +38,7 @@ import configparser
 import os
 import atexit
 
-VERSION = "0.1.6"
+VERSION = "0.1.7"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -55,6 +55,11 @@ API_KEY = 'YOUR_API_KEY'
 DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'
 DEFAULT_JSONLOG_FILE = '/var/log/abuseipdb-reporter-debug-json.log'
 DEFAULT_APILOG_FILE = '/var/log/abuseipdb-reporter-api.log'
+
+# Set the replacement words to mask data that references
+# usernames and account usernames
+USERNAME_REPLACEMENT = '[USERNAME]'
+ACCOUNT_REPLACEMENT = '[REDACTED]'
 
 # Set privacy masks
 hostname = socket.gethostname()
@@ -102,6 +107,12 @@ if config.has_option('settings', 'mask_hostname'):
 
 if config.has_option('settings', 'mask_ip'):
     mask_ip = config.get('settings', 'mask_ip')
+
+if config.has_option('settings', 'USERNAME_REPLACEMENT'):
+    USERNAME_REPLACEMENT = config.get('settings', 'USERNAME_REPLACEMENT')
+
+if config.has_option('settings', 'ACCOUNT_REPLACEMENT'):
+    ACCOUNT_REPLACEMENT = config.get('settings', 'ACCOUNT_REPLACEMENT')
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='AbuseIPDB reporter script.')
@@ -195,12 +206,12 @@ else:
 # Create a regex pattern to match any content within the square brackets, preceded by the word "user"
 username_pattern = r'(\buser )\[(.*?)\]'
 # Replace the matched text in the filtered_logs variable with "user [USERNAME]"
-filtered_logs = re.sub(username_pattern, r'\1[USERNAME]', filtered_logs)
+filtered_logs = re.sub(username_pattern, r'\1{}'.format(USERNAME_REPLACEMENT), filtered_logs)
 
 # Create a regex pattern to match any content within the square brackets, preceded by the word "account"
 any_content_pattern = r'(\baccount )\[(.*?)\]'
 # Replace the matched text in the filtered_logs variable with "account [REDACTED]"
-filtered_logs = re.sub(any_content_pattern, r'\1[REDACTED]', filtered_logs)
+filtered_logs = re.sub(any_content_pattern, r'\1{}'.format(ACCOUNT_REPLACEMENT), filtered_logs)
 
 # Replace sensitive information in the filtered logs
 masked_logs = filtered_logs.replace(short_hostname, mask_hostname).replace(full_hostname, mask_hostname).replace(socket.getfqdn().split('.')[0], mask_hostname)
@@ -211,7 +222,7 @@ for ip in public_ips:
 # Create a regex pattern to match the desired text for any username
 any_username_pattern = r'((?:\buser=|Failed password for (?:invalid user )?|Invalid user ))(\w+)'
 # Replace the matched text in the masked_logs variable with "user [USERNAME]"
-masked_logs = re.sub(any_username_pattern, r'\1[USERNAME]', masked_logs)
+masked_logs = re.sub(any_username_pattern, r'\1{}'.format(USERNAME_REPLACEMENT), masked_logs)
 
 # Extract the destination IP from the log message and apply the change only if the trigger is 'PS_LIMIT'
 if trigger == 'PS_LIMIT':
@@ -233,9 +244,9 @@ pattern = r"Cluster member (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) \((.*?)\) said,"
 masked_message = re.sub(pattern, "", masked_message)
 
 # Replace the matched text in the masked_message variable with "user [USERNAME]"
-masked_message = re.sub(username_pattern, r'\1[USERNAME]', masked_message)
+masked_message = re.sub(username_pattern, r'\1{}'.format(USERNAME_REPLACEMENT), masked_message)
 # Replace the matched text in the masked_message variable with "account [REDACTED]"
-masked_message = re.sub(any_content_pattern, r'\1[REDACTED]', masked_message)
+masked_message = re.sub(any_content_pattern, r'\1{}'.format(ACCOUNT_REPLACEMENT), masked_message)
 
 # Create the comment string
 comment = masked_message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + masked_logs
