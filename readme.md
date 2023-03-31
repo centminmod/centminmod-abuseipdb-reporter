@@ -80,6 +80,16 @@ Edit the `/root/tools/abuseipdb-reporter.py` or `/home/centminmod-abuseipdb-repo
 * `USERNAME_REPLACEMENT = '[USERNAME]'` - for privacy masking, Linux usernames are masked before being sent to AbuseIPDB, this the replacement word value that is the replacement.
 * `ACCOUNT_REPLACEMENT = '[REDACTED]'` - for privacy masking, Linux account usernames are masked before being sent to AbuseIPDB, this the replacement word value that is the replacement.
 
+Example of `USERNAME_REPLACEMENT = '[USERNAME]'` privacy masking the Comments details
+
+```
+Comment: (sshd) Failed SSH login from 5.189.165.229 (DE/Germany/vmi927439.contaboserver.net): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 31 00:41:53 sshd[13465]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=5.189.165.229  user=[USERNAME]
+Mar 31 00:41:55 sshd[13465]: Failed password for [USERNAME] from 5.189.165.229 port 51296 ssh2
+Mar 31 00:45:27 sshd[15102]: Invalid user [USERNAME] from 5.189.165.229 port 35276
+Mar 31 00:45:29 sshd[15102]: Failed password for invalid user [USERNAME] from 5.189.165.229 port 35276 ssh2
+Mar 31 00:46:35 sshd[15383]: Invalid user [USERNAME] from 5.189.165.229 port 59862
+```
+
 ## abuseipdb-reporter.ini
 
 The script now supports `abuseipdb-reporter.ini` file you can create within same directory as `abuseipdb-reporter.py` script to override the following settings without editing the `abuseipdb-reporter.py` script itself:
