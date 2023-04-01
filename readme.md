@@ -1,6 +1,6 @@
 # CSF Firewall + AbuseIPDB Integration
 
-Tailored for Centmin Mod LEMP stack based servers that install CSF Firewall by default with a specific focus on data privacy and prevention of sensitive data leaked to public AbuseIPDB database reports. Though technically should work with any servers that use CSF Firewall.
+Tailored for Centmin Mod LEMP stack based servers that install CSF Firewall by default with a specific focus on data privacy and prevention of sensitive data leaked to public AbuseIPDB database reports. Though technically should work with any servers that use CSF Firewall. For a more detailed summary of the `abuseipdb-reporter.py` Python script and what it does, read the [Credits](#credits).
 
 Based on CSF Firewall and AbuseIPDB integration guide at https://www.abuseipdb.com/csf. However, that guides provided Perl, Shell and Python scripts will all leak some private sensitive data about your servers in their default state for some situations i.e. if you enable [CSF Cluster mode](#csf-cluster-mode), your CSF Cluster members' real IP addresses are leaked. The `abuseipdb-reporter.py` python script I created and outlined below will privacy mask all sensitive info like usernames, Linux users, CSF Cluster mode members' real IP addresses and also detect and mask any registered server public IP addresses.
 
@@ -87,7 +87,7 @@ Mar 27 08:33:28 host lfd[572611]: IPSET: switching set new_6_BDE to bl_6_BDE
 
 3. Reporting to AbuseIPDB
 
-Setup the `abuseipdb-reporter.py` python script on your Centmin Mod LEMP stack server. You can save it to any location you want. For this example, saved to `/root/tools/abuseipdb-reporter.py`.
+Setup the `abuseipdb-reporter.py` Python script on your Centmin Mod LEMP stack server. You can save it to any location you want. For this example, saved to `/root/tools/abuseipdb-reporter.py`.
 
 Ensure `/root/tools/abuseipdb-reporter.py` is executable using `chmod`:
 
