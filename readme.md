@@ -17,6 +17,7 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
       * [Convert JSON Format Back To Non-JSON Format](#convert-json-format-back-to-non-json-format)
 * [CSF Cluster Mode](#csf-cluster-mode)
   * [JSON log format CSF Cluster](#json-log-format-csf-cluster)
+* [AbuseIPDB API Submissions](#abuseipdb-api-submissions)
 * [Additional Tools](#additional-tools)
 
 ## Dependencies
@@ -132,6 +133,7 @@ LOG_API_REQUEST = True
 LOG_MODE = full
 JSON_LOG_FORMAT = False
 JSON_APILOG_FORMAT = False
+IGNORE_CLUSTER_SUBMISSIONS = False
 API_KEY = YOUR_API_KEY
 DEFAULT_LOG_FILE = /var/log/abuseipdb-reporter-debug.log
 DEFAULT_JSONLOG_FILE = /var/log/abuseipdb-reporter-debug-json.log
@@ -447,6 +449,65 @@ restart CSF and lfd using:
 ```
 csf -ra
 ```
+
+# AbuseIPDB API Submissions
+
+For AbuseIPDB API submissions of CSF Firewall LFD actions, you need to set `DEBUG = False` and then you can inspect the relevant logs.
+
+When `JSON_LOG_FORMAT = False` set
+
+
+From `DEFAULT_APILOG_FILE = '/var/log/abuseipdb-reporter-api.log'` defined non-JSON formattted log:
+
+When you get a returned `abuseConfidenceScore` score, that means submission went through.
+
+```
+############################################################################
+Version: 0.2.1
+API Request Sent:
+URL: https://api.abuseipdb.com/api/v2/report
+Headers: {'Accept': 'application/json', 'Key': 'MYKEY'}
+IP: 178.xxx.xxx.xxx
+IPencoded: 178.xxx.xxx.xxx
+Categories: 14
+Comment:  DENY 178.xxx.xxx.xxx, Reason:[(sshd) Failed SSH login from 178.xxx.xxx.xxx (GB/United Kingdom/-): 5 in the last 3600 secs]; Ports: *; Direction: inout; Trigger: LF_CLUSTER; Logs: 
+API Response: {
+  "data": {
+    "ipAddress": "178.xxx.xxx.xxx",
+    "abuseConfidenceScore": 100
+  }
+}
+############################################################################
+--------
+```
+
+When `JSON_LOG_FORMAT = True` set, you can inspect JSON formatted logs for the data that was sent and also the `apiResponse` returned by AbuseIPDB API endpoint.
+
+From `DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'` defined JSON log below you can see there was a 401 Authentication failed response returned for `apiResponse` from AbuseIPDB API endpoint.
+
+```json
+{
+  "sentVersion": "0.2.1",
+  "sentURL": "https://api.abuseipdb.com/api/v2/report",
+  "sentHeaders": {
+    "Accept": "application/json",
+    "Key": "'MYKEY'"
+  },
+  "sentIP": "41.xxx.xxx.xxx",
+  "sentIPencoded": "41.xxx.xxx.xxx",
+  "sentCategories": "22",
+  "sentComment": "(sshd) Failed SSH login from 41.xxx.xxx.xxx (DZ/Algeria/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 31 21:56:53 sshd[14268]: Did not receive identification string from 41.xxx.xxx.xxx port 58356\nMar 31 21:56:53 sshd[14274]: Invalid user '[USERNAME]' from 41.xxx.xxx.xxx port 58544\nMar 31 21:56:53 sshd[14278]: Invalid user '[USERNAME]' from 41.xxx.xxx.xxx port 58408\nMar 31 21:56:53 sshd[14284]: Invalid user '[USERNAME]' from 41.xxx.xxx.xxx port 58726\nMar 31 21:56:53 sshd[14271]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=41.xxx.xxx.xxx  user='[USERNAME]'",
+  "apiResponse": {
+    "errors": [
+      {
+        "detail": "Authentication failed. Your API key is either missing, incorrect, or revoked. Note: The APIv2 key differs from the APIv1 key.",
+        "status": 401
+      }
+    ]
+  }
+}
+```
+
 # Additional Tools
 
 `lfd-rate.py` can parse the CSF Firewall `/var/log/lfd.log` log and calculate the rate of LFD actions in terms of log entries for per second, minute, hour and daily metrics.
