@@ -16,6 +16,7 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
       * [Convert JSON Format Back To Non-JSON Format](#convert-json-format-back-to-non-json-format)
 * [CSF Cluster Mode](#csf-cluster-mode)
   * [JSON log format CSF Cluster](#json-log-format-csf-cluster)
+* [Additional Tools](#additional-tools)
 
 ## Dependencies
 
@@ -420,4 +421,65 @@ restart CSF and lfd using:
 
 ```
 csf -ra
+```
+# Additional Tools
+
+`lfd-rate.py` can parse the CSF Firewall `/var/log/lfd.log` log and calculate the rate of LFD actions in terms of log entries for per second, minute, hour and daily metrics.
+
+```
+./lfd-rate.py
+
+LFD actions per second:
+  2023-03-28 00:07:52: 22 lfd actions
+  2023-03-28 00:07:53: 1 lfd actions
+  2023-03-28 00:09:04: 4 lfd actions
+  2023-03-28 00:09:05: 18 lfd actions
+  ...
+  2023-03-31 19:28:52: 1 lfd actions
+  2023-03-31 19:28:53: 2 lfd actions
+  2023-03-31 19:59:34: 3 lfd actions
+  2023-03-31 20:43:34: 3 lfd actions
+  2023-03-31 22:52:37: 3 lfd actions
+  2023-03-31 23:16:37: 1 lfd actions
+  2023-03-31 23:16:38: 2 lfd actions
+  2023-03-31 23:56:27: 1 lfd actions
+
+LFD actions per minute:
+  2023-03-31 16:48: 6 lfd actions
+  2023-03-31 16:53: 6 lfd actions
+  2023-03-31 19:28: 3 lfd actions
+  2023-03-31 19:59: 3 lfd actions
+  2023-03-31 20:43: 3 lfd actions
+  2023-03-31 22:52: 3 lfd actions
+  2023-03-31 23:16: 3 lfd actions
+  2023-03-31 23:56: 1 lfd actions
+
+LFD actions per hour:
+  2023-03-31 00: 30 lfd actions
+  2023-03-31 01: 13 lfd actions
+  2023-03-31 02: 3 lfd actions
+  2023-03-31 03: 3 lfd actions
+  2023-03-31 04: 6 lfd actions
+  2023-03-31 05: 2 lfd actions
+  2023-03-31 06: 1 lfd actions
+  2023-03-31 07: 83 lfd actions
+  2023-03-31 08: 54 lfd actions
+  2023-03-31 09: 12 lfd actions
+  2023-03-31 10: 13 lfd actions
+  2023-03-31 11: 1 lfd actions
+  2023-03-31 12: 1 lfd actions
+  2023-03-31 13: 2 lfd actions
+  2023-03-31 14: 5 lfd actions
+  2023-03-31 15: 9 lfd actions
+  2023-03-31 16: 17 lfd actions
+  2023-03-31 19: 6 lfd actions
+  2023-03-31 20: 3 lfd actions
+  2023-03-31 22: 3 lfd actions
+  2023-03-31 23: 4 lfd actions
+
+LFD actions per day:
+  2023-03-28: 348 lfd actions
+  2023-03-29: 350 lfd actions
+  2023-03-30: 344 lfd actions
+  2023-03-31: 271 lfd actions
 ```
