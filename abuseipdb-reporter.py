@@ -37,9 +37,10 @@ import subprocess
 import configparser
 import os
 import atexit
+import time
 from urllib.parse import quote
 
-VERSION = "0.2.2"
+VERSION = "0.2.3"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -76,6 +77,15 @@ short_hostname = socket.gethostname()
 # Define dummy mask hostname and IP
 mask_hostname = "MASKED_HOSTNAME"
 mask_ip = "0.0.0.x"
+
+# Set this to True or False to enable or disable Cloudflare API.
+CF_API = False
+# Cloudflare API Token
+CLOUDFLARE_API_TOKEN = 'your-cloudflare-api-token'
+# Cloudflare Firewall Access Rule Endpoint
+CLOUDFLARE_API_ENDPOINT = 'https://api.cloudflare.com/client/v4/user/firewall/access_rules/rules'
+DEFAULT_CF_LOG_FILE = '/var/log/cloudflare-reporter-debug.log'
+DEFAULT_CF_JSONLOG_FILE = '/var/log/cloudflare-reporter-debug-json.log'
 
 # Get the absolute path of the script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -316,6 +326,27 @@ def contains_cluster_member_pattern(message):
     pattern = r"Cluster member (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) \((.*?)\) said,"
     return re.search(pattern, message) is not None
 
+def send_to_cloudflare(ip_address):
+    headers = {
+        'Authorization': 'Bearer {}'.format(CLOUDFLARE_API_TOKEN),
+        'Content-Type': 'application/json'
+    }
+
+    # Get the current epoch timestamp
+    epoch_timestamp = int(time.time())
+
+    data = {
+        'mode': 'block',
+        'configuration': {
+            'target': 'ip',
+            'value': ip_address
+        },
+        'notes': 'Blocked by abuseipdb-reporter.py at epoch timestamp {}'.format(epoch_timestamp)
+    }
+
+    response = requests.post(CLOUDFLARE_API_ENDPOINT, headers=headers, json=data)
+    return response, response.headers
+
 if DEBUG:
     log_data = {
         "sentVersion": VERSION,
@@ -413,6 +444,42 @@ else:
                     f.write("API Response: {}\n".format(json.dumps(decodedResponse, indent=2)))
                     f.write("############################################################################\n")
                     f.write("--------\n")
+
+        # Cloudflare API send
+        if CF_API:
+            cloudflare_response, cloudflare_headers = send_to_cloudflare(args.arguments[0])
+    
+            cf_log_data = {
+                "sentURL": CLOUDFLARE_API_ENDPOINT,
+                "sentHeaders": headers,
+                "sentIP": args.arguments[0],
+                "responseHeaders": dict(cloudflare_headers),
+                "timestamp": epoch_timestamp
+            }
+    
+            if JSON_LOG_FORMAT:
+                if is_log_file_valid(DEFAULT_CF_JSONLOG_FILE):
+                    with open(DEFAULT_CF_JSONLOG_FILE, 'rb+') as f:
+                        f.seek(-2, os.SEEK_END)
+                        f.truncate()
+                    with open(DEFAULT_CF_JSONLOG_FILE, 'a') as f:
+                        f.write(",\n" + json.dumps(cf_log_data, indent=2) + "\n]")
+                else:
+                    with open(DEFAULT_CF_JSONLOG_FILE, 'w') as f:
+                        f.write("[\n" + json.dumps(cf_log_data, indent=2) + "\n]")
+    
+                print("Cloudflare log: JSON data saved to '{}'.".format(DEFAULT_CF_JSONLOG_FILE))
+            else:
+                with open(DEFAULT_CF_LOG_FILE, 'a') as f:
+                    f.write("############################################################################\n")
+                    f.write("URL: {}\n".format(CLOUDFLARE_API_ENDPOINT))
+                    f.write("Headers: {}\n".format(headers))
+                    f.write("IP: {}\n".format(args.arguments[0]))
+                    f.write("Response Headers: {}\n".format(dict(cloudflare_headers)))
+                    f.write("############################################################################\n")
+                    f.write("--------\n")
+    
+                print("Cloudflare log: Data saved to '{}'.".format(DEFAULT_CF_LOG_FILE))
 
         if response.status_code == 200:
             print(json.dumps(decodedResponse['data'], sort_keys=True, indent=4))
