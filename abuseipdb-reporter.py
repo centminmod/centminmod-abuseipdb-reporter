@@ -39,7 +39,7 @@ import os
 import atexit
 from urllib.parse import quote
 
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -369,7 +369,7 @@ if DEBUG:
             f.write("--------\n")
         print("DEBUG MODE: No actual report sent. Data saved to '{}'.".format(args.log_file))
 else:
-    if not (IGNORE_CLUSTER_SUBMISSIONS and contains_cluster_member_pattern(masked_message)):
+    if not (IGNORE_CLUSTER_SUBMISSIONS and contains_cluster_member_pattern(message)):
         response = requests.post(url, headers=headers, params=querystring)
         decodedResponse = json.loads(response.text)
 
