@@ -9,8 +9,8 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
 * [Dependencies](#dependencies)
 * [Setup](#setup)
 * [Configuration](#configuration)
-  * [Log Inspection](#log-inspection)
   * [abuseipdb-reporter.ini](#abuseipdb-reporterini)
+  * [Log Inspection](#log-inspection)
   * [Example](#example)
   * [JSON log format](#json-log-format)
     * [Parsing JSON formatted logs](#parsing-json-formatted-logs)
@@ -121,6 +121,28 @@ Mar 31 00:45:29 sshd[15102]: Failed password for invalid user [USERNAME] from 5.
 Mar 31 00:46:35 sshd[15383]: Invalid user [USERNAME] from 5.189.165.229 port 59862
 ```
 
+## abuseipdb-reporter.ini
+
+The script now supports `abuseipdb-reporter.ini` file you can create within same directory as `abuseipdb-reporter.py` script to override the following settings without editing the `abuseipdb-reporter.py` script itself:
+
+```
+[settings]
+DEBUG = True
+LOG_API_REQUEST = True
+LOG_MODE = full
+JSON_LOG_FORMAT = False
+JSON_APILOG_FORMAT = False
+API_KEY = YOUR_API_KEY
+DEFAULT_LOG_FILE = /var/log/abuseipdb-reporter-debug.log
+DEFAULT_JSONLOG_FILE = /var/log/abuseipdb-reporter-debug-json.log
+DEFAULT_APILOG_FILE = /var/log/abuseipdb-reporter-api.log
+DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'
+mask_hostname = MASKED_HOSTNAME
+mask_ip = 0.0.0.x
+USERNAME_REPLACEMENT = '[USERNAME]'
+ACCOUNT_REPLACEMENT = '[REDACTED]'
+```
+
 ### Log Inspection
 
 When you set `DEBUG = True`, look at logs:
@@ -143,28 +165,6 @@ DEFAULT_APILOG_FILE = '/var/log/abuseipdb-reporter-api.log'
 when `JSON_LOG_FORMAT = True` set
 ```
 DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'
-```
-
-## abuseipdb-reporter.ini
-
-The script now supports `abuseipdb-reporter.ini` file you can create within same directory as `abuseipdb-reporter.py` script to override the following settings without editing the `abuseipdb-reporter.py` script itself:
-
-```
-[settings]
-DEBUG = True
-LOG_API_REQUEST = True
-LOG_MODE = full
-JSON_LOG_FORMAT = False
-JSON_APILOG_FORMAT = False
-API_KEY = YOUR_API_KEY
-DEFAULT_LOG_FILE = /var/log/abuseipdb-reporter-debug.log
-DEFAULT_JSONLOG_FILE = /var/log/abuseipdb-reporter-debug-json.log
-DEFAULT_APILOG_FILE = /var/log/abuseipdb-reporter-api.log
-DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'
-mask_hostname = MASKED_HOSTNAME
-mask_ip = 0.0.0.x
-USERNAME_REPLACEMENT = '[USERNAME]'
-ACCOUNT_REPLACEMENT = '[REDACTED]'
 ```
 
 ## Example
