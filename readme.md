@@ -9,6 +9,7 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
 * [Dependencies](#dependencies)
 * [Setup](#setup)
 * [Configuration](#configuration)
+  * [Log Inspection](#log-inspection)
   * [abuseipdb-reporter.ini](#abuseipdb-reporterini)
   * [Example](#example)
   * [JSON log format](#json-log-format)
@@ -118,6 +119,30 @@ Mar 31 00:41:55 sshd[13465]: Failed password for [USERNAME] from 5.189.165.229 p
 Mar 31 00:45:27 sshd[15102]: Invalid user [USERNAME] from 5.189.165.229 port 35276
 Mar 31 00:45:29 sshd[15102]: Failed password for invalid user [USERNAME] from 5.189.165.229 port 35276 ssh2
 Mar 31 00:46:35 sshd[15383]: Invalid user [USERNAME] from 5.189.165.229 port 59862
+```
+
+### Log Inspection
+
+When you set `DEBUG = True`, look at logs:
+
+when `JSON_LOG_FORMAT = False` set
+```
+DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'
+```
+when `JSON_LOG_FORMAT = True` set
+```
+DEFAULT_JSONLOG_FILE = '/var/log/abuseipdb-reporter-debug-json.log'
+```
+
+When you set `DEBUG = False` look at logs:
+
+when `JSON_LOG_FORMAT = False` set
+```
+DEFAULT_APILOG_FILE = '/var/log/abuseipdb-reporter-api.log'
+```
+when `JSON_LOG_FORMAT = True` set
+```
+DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'
 ```
 
 ## abuseipdb-reporter.ini
