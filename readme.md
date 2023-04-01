@@ -459,7 +459,7 @@ When `JSON_LOG_FORMAT = False` set
 
 From `DEFAULT_APILOG_FILE = '/var/log/abuseipdb-reporter-api.log'` defined non-JSON formattted log:
 
-When you get a returned `abuseConfidenceScore` score, that means submission went through.
+When `API Response` returned `abuseConfidenceScore` score, that means submission went through.
 
 ```
 ############################################################################
@@ -504,6 +504,29 @@ From `DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'` defi
         "status": 401
       }
     ]
+  }
+}
+```
+
+When submission goes through from `DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'` defined JSON log when `JSON_LOG_FORMAT = True` set below:
+
+```json
+{
+  "sentVersion": "0.2.1",
+  "sentURL": "https://api.abuseipdb.com/api/v2/report",
+  "sentHeaders": {
+    "Accept": "application/json",
+    "Key": "MYKEY"
+  },
+  "sentIP": "103.xxx.xxx.xxx",
+  "sentIPencoded": "103.xxx.xxx.xxx",
+  "sentCategories": "4",
+  "sentComment": "103.xxx.xxx.xxx (ID/Indonesia/-), 5 distributed sshd attacks on account [REDACTED] in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_DISTATTACK; Logs: Apr  1 07:05:12 sshd[663948]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=179.209.216.210  user=[USERNAME]\nApr  1 07:05:14 sshd[663948]: Failed password for [USERNAME] from 179.209.216.210 port 50461 ssh2\nApr  1 07:06:28 sshd[664006]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=157.230.209.3  user=[USERNAME]\nApr  1 07:06:15 sshd[663994]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=103.xxx.xxx.xxx  user=[USERNAME]\nApr  1 07:06:18 sshd[663994]: Failed password for [USERNAME] from 103.xxx.xxx.xxx port 51378 ssh2",
+  "apiResponse": {
+    "data": {
+      "ipAddress": "103.xxx.xxx.xxx",
+      "abuseConfidenceScore": 100
+    }
   }
 }
 ```
