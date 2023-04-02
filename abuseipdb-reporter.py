@@ -42,9 +42,10 @@ import subprocess
 import configparser
 import os
 import atexit
+import time
 from urllib.parse import quote
 
-VERSION = "0.2.4"
+VERSION = "0.2.5"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -67,6 +68,11 @@ DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'
 DEFAULT_JSONLOG_FILE = '/var/log/abuseipdb-reporter-debug-json.log'
 DEFAULT_APILOG_FILE = '/var/log/abuseipdb-reporter-api.log'
 DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'
+
+# Local IP submission cache
+CACHE_FILE = "ip_cache.json"
+# cache for 15 minutes in seconds
+CACHE_DURATION = 15 * 60
 
 # Set the replacement words to mask data that references
 # usernames and account usernames. If set in .ini file you can remove
@@ -173,6 +179,28 @@ print("In/Out:", inOut)
 print("Message:", message)
 print("Logs:", logs)
 print("Trigger:", trigger)
+
+def load_cache():
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, "r") as f:
+            return json.load(f)
+    else:
+        return {}
+
+def save_cache(cache):
+    with open(CACHE_FILE, "w") as f:
+        json.dump(cache, f)
+
+def clean_cache(cache):
+    current_time = time.time()
+    cleaned_cache = {ip: timestamp for ip, timestamp in cache.items() if current_time - timestamp < CACHE_DURATION}
+    return cleaned_cache
+
+def ip_in_cache(ip, cache):
+    return ip in cache
+
+def update_cache(ip, cache):
+    cache[ip] = time.time()
 
 def get_all_public_ips():
     try:
@@ -377,60 +405,74 @@ if DEBUG:
             f.write("--------\n")
         print("DEBUG MODE: No actual report sent. Data saved to '{}'.".format(args.log_file))
 else:
+    # Load and clean the cache
+    cache = load_cache()
+    cache = clean_cache(cache)
+
     if not (IGNORE_CLUSTER_SUBMISSIONS and contains_cluster_member_pattern(message)):
-        response = requests.post(url, headers=headers, params=querystring)
-        decodedResponse = json.loads(response.text)
+        # Check if the IP address is in the cache before sending the report
+        if not ip_in_cache(args.arguments[0], cache):
+            response = requests.post(url, headers=headers, params=querystring)
+            decodedResponse = json.loads(response.text)
 
-        if LOG_API_REQUEST:
-            # ... (rest of the LOG_API_REQUEST code)
-            log_data = {
-                "sentVersion": VERSION,
-                "sentURL": url,
-                "sentHeaders": headers,
-                "sentIP": args.arguments[0],
-                "sentIPencoded": url_encoded_ip,
-                "sentCategories": categories,
-                "sentComment": masked_comment,
-                "apiResponse": decodedResponse
-            }
-    
-            if JSON_APILOG_FORMAT:
-                if is_log_file_valid(DEFAULT_JSONAPILOG_FILE):
-                    # Remove the last closing bracket ']'
-                    with open(DEFAULT_JSONAPILOG_FILE, 'rb+') as f:
-                        f.seek(-2, os.SEEK_END)
-                        f.truncate()
-                    # Append the new log entry followed by a comma and a newline
-                    with open(DEFAULT_JSONAPILOG_FILE, 'a') as f:
-                        f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")
+            if LOG_API_REQUEST:
+                # ... (rest of the LOG_API_REQUEST code)
+                log_data = {
+                    "sentVersion": VERSION,
+                    "sentURL": url,
+                    "sentHeaders": headers,
+                    "sentIP": args.arguments[0],
+                    "sentIPencoded": url_encoded_ip,
+                    "sentCategories": categories,
+                    "sentComment": masked_comment,
+                    "apiResponse": decodedResponse
+                }
+        
+                if JSON_APILOG_FORMAT:
+                    if is_log_file_valid(DEFAULT_JSONAPILOG_FILE):
+                        # Remove the last closing bracket ']'
+                        with open(DEFAULT_JSONAPILOG_FILE, 'rb+') as f:
+                            f.seek(-2, os.SEEK_END)
+                            f.truncate()
+                        # Append the new log entry followed by a comma and a newline
+                        with open(DEFAULT_JSONAPILOG_FILE, 'a') as f:
+                            f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")
+                    else:
+                        # Create a new log file with a single log entry
+                        with open(DEFAULT_JSONAPILOG_FILE, 'w') as f:
+                            f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
                 else:
-                    # Create a new log file with a single log entry
-                    with open(DEFAULT_JSONAPILOG_FILE, 'w') as f:
-                        f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
-            else:
-                with open(DEFAULT_APILOG_FILE, 'a') as f:
-                    f.write("############################################################################\n")
-                    f.write("Version: {}\n".format(VERSION))
-                    f.write("API Request Sent:\n")
-                    f.write("URL: {}\n".format(url))
-                    f.write("Headers: {}\n".format(headers))
-                    f.write("IP: {}\n".format(args.arguments[0]))
-                    f.write("IPencoded: {}\n".format(url_encoded_ip))
-                    f.write("Categories: {}\n".format(categories))
-                    f.write("Comment: {}\n".format(masked_comment))
-                    f.write("API Response: {}\n".format(json.dumps(decodedResponse, indent=2)))
-                    f.write("############################################################################\n")
-                    f.write("--------\n")
+                    with open(DEFAULT_APILOG_FILE, 'a') as f:
+                        f.write("############################################################################\n")
+                        f.write("Version: {}\n".format(VERSION))
+                        f.write("API Request Sent:\n")
+                        f.write("URL: {}\n".format(url))
+                        f.write("Headers: {}\n".format(headers))
+                        f.write("IP: {}\n".format(args.arguments[0]))
+                        f.write("IPencoded: {}\n".format(url_encoded_ip))
+                        f.write("Categories: {}\n".format(categories))
+                        f.write("Comment: {}\n".format(masked_comment))
+                        f.write("API Response: {}\n".format(json.dumps(decodedResponse, indent=2)))
+                        f.write("############################################################################\n")
+                        f.write("--------\n")
 
-        if response.status_code == 200:
-            print(json.dumps(decodedResponse['data'], sort_keys=True, indent=4))
-        elif response.status_code == 429:
-            print(json.dumps(decodedResponse['errors'][0], sort_keys=True, indent=4))
-        elif response.status_code == 422:
-            print(json.dumps(decodedResponse['errors'][0], sort_keys=True, indent=4))
-        elif response.status_code == 302:
-            print('Unsecure protocol requested. Redirected to HTTPS.')
-        elif response.status_code == 401:
-            print(json.dumps(decodedResponse['errors'][0], sort_keys=True, indent=4))
+            if response.status_code == 200:
+                print(json.dumps(decodedResponse['data'], sort_keys=True, indent=4))
+                # Update the cache with the new IP address and timestamp, then save it
+                update_cache(args.arguments[0], cache)
+                save_cache(cache)
+
+            if response.status_code == 200:
+                print(json.dumps(decodedResponse['data'], sort_keys=True, indent=4))
+            elif response.status_code == 429:
+                print(json.dumps(decodedResponse['errors'][0], sort_keys=True, indent=4))
+            elif response.status_code == 422:
+                print(json.dumps(decodedResponse['errors'][0], sort_keys=True, indent=4))
+            elif response.status_code == 302:
+                print('Unsecure protocol requested. Redirected to HTTPS.')
+            elif response.status_code == 401:
+                print(json.dumps(decodedResponse['errors'][0], sort_keys=True, indent=4))
+            else:
+                print('Unexpected server response. Status Code: {}'.format(response.status_code))
         else:
-            print('Unexpected server response. Status Code: {}'.format(response.status_code))
+            print("IP address already reported within the last 15 minutes. Skipping submission.")
