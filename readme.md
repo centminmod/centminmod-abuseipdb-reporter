@@ -602,7 +602,7 @@ LFD actions per day:
 
 # Credits
 
-The `abuseipdb-reporter.py` Python script was created with the assistance of ChatGPT Plus (ChatGPT4). I fed the script back to ChatGPT Plus - splitting the code into token limited bite sizes using my text prompt slicer toot at https://slicer.centminmod.com/ (which was also created using ChatGPT Plus) and asked it to summarize what the script does and this is ChatGPT Plus's reply below:
+The `abuseipdb-reporter.py` Python script was created with the assistance of ChatGPT Plus (ChatGPT4). I fed the script back to ChatGPT Plus - splitting the code into token limited bite sizes using my text prompt slicer tool at https://slicer.centminmod.com/ (which was also created using ChatGPT Plus) and asked it to summarize what the script does and this is ChatGPT Plus's reply below:
 
 This script is a custom Python script designed to report banned IP addresses to the AbuseIPDB API when using the ConfigServer Security & Firewall (CSF) with the BLOCK_REPORT feature. The script processes log data provided by the CSF Firewall and sends it to the AbuseIPDB API to help maintain a database of abusive IP addresses. It supports various configurations for debugging, logging, and handling cluster submissions.
 
