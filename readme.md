@@ -44,7 +44,9 @@ pip3 install requests
 
 1. Create an AbuseIPDB API key
 
-Register an account with AbuseIPDB, and [create an API key](https://www.abuseipdb.com/account/api). The API is free to use, but you do have to [create an account](https://www.abuseipdb.com/register).
+Register an account with AbuseIPDB, and [create an API key](https://www.abuseipdb.com/account/api). The API is free to use, but you do have to [create an account](https://www.abuseipdb.com/register). If you [verify your domain name as a webmaster](https://www.abuseipdb.com/account/webmasters), you can also bump your free plan quota from 1,000 requests/day to 3,000 requests/day to the API.
+
+You can see your API quota usage at https://www.abuseipdb.com/account/api and view and manage your reported IP submissions at https://www.abuseipdb.com/account/reports.
 
 2. Integrating AbuseIPDB Blocklist Into CSF Firewall
 
