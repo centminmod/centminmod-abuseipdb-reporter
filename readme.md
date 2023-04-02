@@ -557,7 +557,7 @@ When submission goes through from `DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb
 
 # Manual Tests
 
-You can pass data to directly to `abuseipdb-reporter.py` Python script to check it's output as well.
+You can pass data directly to `abuseipdb-reporter.py` Python script to check it's output as well.
 
 CSF Firewall passes data to `BLOCK_REPORT` defined script for the following arguments:
 
