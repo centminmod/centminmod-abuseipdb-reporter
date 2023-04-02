@@ -79,6 +79,12 @@ Edit `/etc/csf/csf.blocklists` and add blocklist for AbuseIPD and change `YOUR_A
 ABUSEIPDB|86400|10000|https://api.abuseipdb.com/api/v2/blacklist?key=YOUR_API_KEY&plaintext
 ```
 
+Then restart CSF Firewall
+
+```
+csf -ra
+```
+
 The `/var/log/lfd.log`, will now show the AbuseIPDB blocklists loaded
 
 ```
