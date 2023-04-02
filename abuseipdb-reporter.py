@@ -44,7 +44,7 @@ import os
 import atexit
 from urllib.parse import quote
 
-VERSION = "0.2.3"
+VERSION = "0.2.4"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -148,6 +148,8 @@ def log_message(log_file, message):
             f.write("Log file created.\n")
     with open(log_file, 'a+') as f:
         f.write(message + '\n')
+
+print(f"\nReceived arguments: {args.arguments}\n")
 
 # Check if the required arguments are provided
 if len(args.arguments) < 8:

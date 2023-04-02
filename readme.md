@@ -18,6 +18,7 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
 * [CSF Cluster Mode](#csf-cluster-mode)
   * [JSON log format CSF Cluster](#json-log-format-csf-cluster)
 * [AbuseIPDB API Submissions](#abuseipdb-api-submissions)
+* [Manual Tests](#manual-tests)
 * [Additional Tools](#additional-tools)
 * [Credits](#credits)
 
@@ -203,20 +204,6 @@ DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'
 ## Example
 
 CSF Firewall when it's `lfd` process detects and logs a block action from bad IPs usually just blocks the request and adds an entry into `/var/log/lfd.log` log. However, you can configure CSF Firewall to also pass that `lfd` block action data i.e. IP address etc and send it to a defined custom script (`abuseipdb-reporter.py`) setup assigned to variable `BLOCK_REPORT` in your CSF config file `/etc/csf/csf.conf`.
-
-CSF Firewall passes data to `BLOCK_REPORT` defined script for the following arguments:
-
-```
-ARG 1 = IP Address  # The IP address or CIDR being blocked
-ARG 2 = ports   # Port, comma separated list or * for all ports
-ARG 3 = permanent # 0=temporary block, 1=permanent block
-ARG 4 = inout   # Direction of block: in, out or inout
-ARG 5 = timeout   # If a temporary block, TTL in seconds, otherwise 0
-ARG 6 = message   # Message containing reason for block
-ARG 7 = logs    # The logs lines that triggered the block (will contain
-                        # line feeds between each log line)
-ARG 8 = trigger   # The configuration settings triggered
-```
 
 Example of `DEBUG = True` debug mode with `JSON_LOG_FORMAT = False` saved log file entries at `/var/log/abuseipdb-reporter-debug.log` 
 
@@ -560,6 +547,66 @@ When submission goes through from `DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb
     }
   }
 }
+```
+
+# Manual Tests
+
+You can pass data to directly to `abuseipdb-reporter.py` Python script to check it's output as well.
+
+CSF Firewall passes data to `BLOCK_REPORT` defined script for the following arguments:
+
+```
+ARG 1 = IP Address  # The IP address or CIDR being blocked
+ARG 2 = ports   # Port, comma separated list or * for all ports
+ARG 3 = permanent # 0=temporary block, 1=permanent block
+ARG 4 = inout   # Direction of block: in, out or inout
+ARG 5 = timeout   # If a temporary block, TTL in seconds, otherwise 0
+ARG 6 = message   # Message containing reason for block
+ARG 7 = logs    # The logs lines that triggered the block (will contain
+                        # line feeds between each log line)
+ARG 8 = trigger   # The configuration settings triggered
+```
+
+Manual command line test
+
+```
+python3 abuseipdb-reporter.py "116.xxx.xxx.xxx" '*' "0" "inout" "360" "(sshd) Failed SSH login from 116.xxx.xxx.xxx (VN/Vietnam/-): 5 in the last 3600 secs" "Apr 2 07:18:50 host sshd[7788]: Invalid user free from 116.xxx.xxx.xxx port 49518..." "LF_SSHD"
+```
+
+would give the following output:
+
+```
+Received arguments: ['116.xxx.xxx.xxx', '*', '0', 'inout', '360', '(sshd) Failed SSH login from 116.xxx.xxx.xxx (VN/Vietnam/-): 5 in the last 3600 secs', 'Apr 2 07:18:50 host sshd[7788]: Invalid user free from 116.xxx.xxx.xxx port 49518...', 'LF_SSHD']
+
+Ports: *
+In/Out: inout
+Message: (sshd) Failed SSH login from 116.xxx.xxx.xxx (VN/Vietnam/-): 5 in the last 3600 secs
+Logs: Apr 2 07:18:50 host sshd[7788]: Invalid user free from 116.xxx.xxx.xxx port 49518...
+Trigger: LF_SSHD
+DEBUG MODE: No actual report sent. Data saved to '/var/log/abuseipdb-reporter-debug.log'.
+```
+
+And logged in `/var/log/abuseipdb-reporter-debug.log` when using `DEBUG = True`, would be the entry:
+
+```
+############################################################################
+Version: 0.2.3
+DEBUG MODE: data intended to be sent to AbuseIPDB
+URL: https://api.abuseipdb.com/api/v2/report
+Headers: {'Accept': 'application/json', 'Key': 'YOUR_API_KEY'}
+IP: 116.xxx.xxx.xxx
+IPencoded: 116.xxx.xxx.xxx
+Categories: 22
+Comment: (sshd) Failed SSH login from 116.xxx.xxx.xxx (VN/Vietnam/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: 
+---------------------------------------------------------------------------
+DEBUG MODE: CSF passed data not sent to AbuseIPDB
+Ports: *
+In/Out: inout
+Message: (sshd) Failed SSH login from 116.xxx.xxx.xxx (VN/Vietnam/-): 5 in the last 3600 secs
+Logs: Apr 2 07:18:50 host sshd[7788]: Invalid user free from 116.xxx.xxx.xxx port 49518...
+Trigger: LF_SSHD
+############################################################################
+--------
 ```
 
 # Additional Tools
