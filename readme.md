@@ -48,6 +48,12 @@ Register an account with AbuseIPDB, and [create an API key](https://www.abuseipd
 
 2. Integrating AbuseIPDB Blocklist Into CSF Firewall
 
+The `/etc/csf/csf.blocklist` feature in CSF Firewall is a way to block a list of IP addresses that are known to be malicious or spammy. The blocklist is a text file that contains a list of IP addresses that you want to block. These IP addresses can come from a variety of sources, such as third-party blocklists or your own custom list.
+
+When you enable the `/etc/csf/csf.blocklist `feature, CSF Firewall will regularly check the blocklist file for updates and automatically add any new IP addresses to the firewall's blocklist. This means that if any of the listed IP addresses attempt to connect to your server, they will be automatically blocked by CSF Firewall, preventing any potential security threats.
+
+In short, the `/etc/csf/csf.blocklist` feature is a powerful tool to help protect your server from known malicious IP addresses by blocking them automatically.
+
 AbuseIPDB API has daily API usage limits for free and paid plans outlined at https://www.abuseipdb.com/pricing. For webmaster verified free plan the daily API usage limits are outlined in below table. The `blacklist` quota is what the blocklists will consume. While the below steps to report bad IP addresses will consume the `reports` quota of 3,000/day on webmaster verified free plan.
 
 | Endpoint      | Usage / Daily Limit | Utilization Rate |
