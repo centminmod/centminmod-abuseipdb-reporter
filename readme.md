@@ -8,7 +8,8 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
 
 * [Dependencies](#dependencies)
 * [Setup](#setup)
-* [Configuration](#configuration)
+  * [Configuration](#configuration)
+  * [Local IP Cache](#local-ip-cache)
   * [abuseipdb-reporter.ini](#abuseipdb-reporterini)
   * [Log Inspection](#log-inspection)
   * [Example](#example)
@@ -149,6 +150,8 @@ Edit the `/root/tools/abuseipdb-reporter.py` or `/home/centminmod-abuseipdb-repo
 * `JSON_LOG_FORMAT = False` - Set to `False` by default to save `DEBUG = True` debug log to specified `DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'`. When set to `True` will save in JSON format to specified `DEFAULT_JSONLOG_FILE = '/var/log/abuseipdb-reporter-debug-json.log'` log file instead. The JSON log format makes parsing and filtering the debug log easier [JSON format demo](#json-log-format) and [CSF Cluster JSON format demo](#json-log-format-csf-cluster).
 * `USERNAME_REPLACEMENT = [USERNAME]` - for privacy masking, Linux usernames are masked before being sent to AbuseIPDB, this is the replacement word value.
 * `ACCOUNT_REPLACEMENT = [REDACTED]` - for privacy masking, Linux account usernames are masked before being sent to AbuseIPDB, this is the replacement word value.
+* `CACHE_FILE = "ip_cache.json"` - local IP cache file name to save IPs for 15 minutes so repeated IPs within 15 minutes interval are not submitted to AbuseIPDB endpoint again and skipped. See [Local IP Cache](#local-ip-cache) for more information.
+* `CACHE_DURATION = 900` - controls local IP cache time to save IPs for. Defaults to 15 minutes (900 seconds).
 
 Example of `USERNAME_REPLACEMENT = [USERNAME]` privacy masking the Comments details
 
@@ -158,6 +161,67 @@ Mar 31 00:41:55 sshd[13465]: Failed password for [USERNAME] from 5.189.165.229 p
 Mar 31 00:45:27 sshd[15102]: Invalid user [USERNAME] from 5.189.165.229 port 35276
 Mar 31 00:45:29 sshd[15102]: Failed password for invalid user [USERNAME] from 5.189.165.229 port 35276 ssh2
 Mar 31 00:46:35 sshd[15383]: Invalid user [USERNAME] from 5.189.165.229 port 59862
+```
+
+### Local IP Cache
+
+`abuseipdb-reporter.py` version `0.2.5` adds local IP caching support via 2 new variables which control where and how long to cache IP submissions to AbuseIPDB API when DEBUG = False is set. 
+
+```
+CACHE_FILE = ip_cache.json
+CACHE_DURATION = 900
+```
+
+Then when an IP is to be submitted via API, the local IP cache routine will check to see if the IP has been previously submitted in the past 15 minutes (900 seconds) and skip submission to AbuseIPDB API if the IP is found in local IP cache. If the IP isn't found in local IP cache, the IP will be submitted to AbuseIPDB and then the IP will be added to local IP cache for storage for 15 minues before eventually being purged from local IP cache. This adheres to the AbuseIPDB FAQ recommendations `#9` at https://www.abuseipdb.com/faq.html.
+
+Here's a [manual command line test](#manual-tests) demo for IP = `127.0.0.3` showing how it works below:
+
+The manual test command:
+
+```
+python3 abuseipdb-reporter.py "127.0.0.3" '*' "0" "inout" "360" "(sshd) Failed SSH login from 127.0.0.3 (VN/Vietnam/-): 5 in the last 3600 secs" "Apr 2 07:18:50 host sshd[7788]: Invalid user free from 127.0.0.3 port 49518..." "LF_SSHD"
+```
+
+Outputs 1st run
+
+```
+Received arguments: ['127.0.0.3', '*', '0', 'inout', '360', '(sshd) Failed SSH login from 127.0.0.3 (VN/Vietnam/-): 5 in the last 3600 secs', 'Apr 2 07:18:50 host sshd[7788]: Invalid user free from 127.0.0.3 port 49518...', 'LF_SSHD']
+
+Ports: *
+In/Out: inout
+Message: (sshd) Failed SSH login from 127.0.0.3 (VN/Vietnam/-): 5 in the last 3600 secs
+Logs: Apr 2 07:18:50 host sshd[7788]: Invalid user free from 127.0.0.3 port 49518...
+Trigger: LF_SSHD
+{
+    "abuseConfidenceScore": 0,
+    "ipAddress": "127.0.0.3"
+}
+{
+    "abuseConfidenceScore": 0,
+    "ipAddress": "127.0.0.3"
+}
+```
+
+The local IP cache `ip_cache.json` file's contents:
+
+```
+cat ip_cache.json | jq -r
+{
+  "127.0.0.3": 1680445170.5792017
+}
+```
+
+Outputs for 2nd run within 15 minute interval for same `127.0.0.3` IP - notice the message `IP address already reported within the last 15 minutes. Skipping submission.` that means IP submission was skipped.
+
+```
+Received arguments: ['127.0.0.3', '*', '0', 'inout', '360', '(sshd) Failed SSH login from 127.0.0.3 (VN/Vietnam/-): 5 in the last 3600 secs', 'Apr 2 07:18:50 host sshd[7788]: Invalid user free from 127.0.0.3 port 49518...', 'LF_SSHD']
+
+Ports: *
+In/Out: inout
+Message: (sshd) Failed SSH login from 127.0.0.3 (VN/Vietnam/-): 5 in the last 3600 secs
+Logs: Apr 2 07:18:50 host sshd[7788]: Invalid user free from 127.0.0.3 port 49518...
+Trigger: LF_SSHD
+IP address already reported within the last 15 minutes. Skipping submission.
 ```
 
 ## abuseipdb-reporter.ini
@@ -181,6 +245,8 @@ mask_hostname = MASKED_HOSTNAME
 mask_ip = 0.0.0.x
 USERNAME_REPLACEMENT = [USERNAME]
 ACCOUNT_REPLACEMENT = [REDACTED]
+CACHE_FILE = ip_cache.json
+CACHE_DURATION = 900
 ```
 
 ### Log Inspection

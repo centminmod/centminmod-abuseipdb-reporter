@@ -72,7 +72,7 @@ DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'
 # Local IP submission cache
 CACHE_FILE = "ip_cache.json"
 # cache for 15 minutes in seconds
-CACHE_DURATION = 15 * 60
+CACHE_DURATION = 900
 
 # Set the replacement words to mask data that references
 # usernames and account usernames. If set in .ini file you can remove
@@ -141,6 +141,12 @@ if config.has_option('settings', 'USERNAME_REPLACEMENT'):
 
 if config.has_option('settings', 'ACCOUNT_REPLACEMENT'):
     ACCOUNT_REPLACEMENT = config.get('settings', 'ACCOUNT_REPLACEMENT')
+
+if config.has_option('settings', 'CACHE_FILE'):
+    CACHE_FILE = config.get('settings', 'CACHE_FILE')
+
+if config.has_option('settings', 'CACHE_DURATION'):
+    CACHE_DURATION = config.get('settings', 'CACHE_DURATION')
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='AbuseIPDB reporter script.')
