@@ -110,10 +110,10 @@ Edit the `/root/tools/abuseipdb-reporter.py` or `/home/centminmod-abuseipdb-repo
 * `DEBUG = True` - When set to `True`, debug mode is enabled and no actual CSF Firewall block actions will be sent to AbuseIPDB via API endpoint url. Instead block actions will be saved to a local log file `/var/log/abuseipdb-reporter-debug.log`. You can use this mode for troubleshooting or testing before you eventually set `DEBUG = False` to enable actual CSF Firewall block actions to be sent to AbuseIPDB via API endpoint url.
 * `API_KEY = 'YOUR_API_KEY'` - Set `YOUR_API_KEY` to your AbuseIPDB API key
 * `JSON_LOG_FORMAT = False` - Set to `False` by default to save `DEBUG = True` debug log to specified `DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'`. When set to `True` will save in JSON format to specified `DEFAULT_JSONLOG_FILE = '/var/log/abuseipdb-reporter-debug-json.log'` log file instead. The JSON log format makes parsing and filtering the debug log easier [JSON format demo](#json-log-format) and [CSF Cluster JSON format demo](#json-log-format-csf-cluster).
-* `USERNAME_REPLACEMENT = '[USERNAME]'` - for privacy masking, Linux usernames are masked before being sent to AbuseIPDB, this is the replacement word value.
-* `ACCOUNT_REPLACEMENT = '[REDACTED]'` - for privacy masking, Linux account usernames are masked before being sent to AbuseIPDB, this is the replacement word value.
+* `USERNAME_REPLACEMENT = [USERNAME]` - for privacy masking, Linux usernames are masked before being sent to AbuseIPDB, this is the replacement word value.
+* `ACCOUNT_REPLACEMENT = [REDACTED]` - for privacy masking, Linux account usernames are masked before being sent to AbuseIPDB, this is the replacement word value.
 
-Example of `USERNAME_REPLACEMENT = '[USERNAME]'` privacy masking the Comments details
+Example of `USERNAME_REPLACEMENT = [USERNAME]` privacy masking the Comments details
 
 ```
 Comment: (sshd) Failed SSH login from 5.189.165.229 (DE/Germany/vmi927439.contaboserver.net): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Mar 31 00:41:53 sshd[13465]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=5.189.165.229  user=[USERNAME]
@@ -139,11 +139,11 @@ API_KEY = YOUR_API_KEY
 DEFAULT_LOG_FILE = /var/log/abuseipdb-reporter-debug.log
 DEFAULT_JSONLOG_FILE = /var/log/abuseipdb-reporter-debug-json.log
 DEFAULT_APILOG_FILE = /var/log/abuseipdb-reporter-api.log
-DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'
+DEFAULT_JSONAPILOG_FILE = /var/log/abuseipdb-reporter-api-json.log
 mask_hostname = MASKED_HOSTNAME
 mask_ip = 0.0.0.x
-USERNAME_REPLACEMENT = '[USERNAME]'
-ACCOUNT_REPLACEMENT = '[REDACTED]'
+USERNAME_REPLACEMENT = [USERNAME]
+ACCOUNT_REPLACEMENT = [REDACTED]
 ```
 
 ### Log Inspection
@@ -596,55 +596,78 @@ LFD actions per day:
 
 # Credits
 
-The `abuseipdb-reporter.py` Python script was created with the assistance of ChatGPT Plus (ChatGPT4). I fed the script back to ChatGPT Plus - splitting the code into token limited bite sizes using my text prompt slicer too at https://slicer.centminmod.com/ (which was also created using ChatGPT Plus) and asked it to summarize what the script does and this is ChatGPT Plus's reply below:
+The `abuseipdb-reporter.py` Python script was created with the assistance of ChatGPT Plus (ChatGPT4). I fed the script back to ChatGPT Plus - splitting the code into token limited bite sizes using my text prompt slicer toot at https://slicer.centminmod.com/ (which was also created using ChatGPT Plus) and asked it to summarize what the script does and this is ChatGPT Plus's reply below:
 
 This script is a custom Python script designed to report banned IP addresses to the AbuseIPDB API when using the ConfigServer Security & Firewall (CSF) with the BLOCK_REPORT feature. The script processes log data provided by the CSF Firewall and sends it to the AbuseIPDB API to help maintain a database of abusive IP addresses. It supports various configurations for debugging, logging, and handling cluster submissions.
 
 The script performs the following actions:
 
-1. **Import required modules**: The script imports necessary Python modules:
-   - requests: For making HTTP requests to the AbuseIPDB API.
-   - json: For parsing and creating JSON formatted data.
-   - sys, argparse: For handling command-line arguments.
-   - socket, re, subprocess: For processing and extracting information from log data.
-   - configparser, os, atexit: For reading and writing configuration files and handling file paths.
+1. **Import required modules**: The script imports necessary Python modules, each serving a specific purpose in the script:
+   - `requests`: A popular library for making HTTP requests to APIs, used to send reports to the AbuseIPDB API.
+   - `json`: A built-in module for parsing and creating JSON formatted data, used for handling API responses and log file data.
+   - `sys`, `argparse`: Built-in modules for handling command-line arguments, enabling users to provide input and options to the script.
+   - `socket`, `re`, `subprocess`: Built-in modules for processing and extracting information from log data. `socket` is used for network-related operations, `re` for regular expressions and pattern matching, and `subprocess` for running external commands.
+   - `configparser`, `os`, `atexit`: Built-in modules for reading and writing configuration files and handling file paths. `configparser` simplifies reading and writing INI-style configuration files, `os` provides a cross-platform interface for file and directory operations, and `atexit` allows the script to register cleanup functions that will be executed when the script exits.
 
-2. **Set global variables**: The script sets global variables for:
-   - API key: The API key required to authenticate with the AbuseIPDB API.
-   - File paths: The default file paths for the log files and the JSON formatted log files.
-   - Debugging options: DEBUG (enables/disables debug mode), LOG_API_REQUEST (logs API requests to file), and LOG_MODE (sets the log mode to 'full' or 'compact').
-   - JSON formatting options: JSON_LOG_FORMAT (enables/disables JSON formatted logs in debug mode) and JSON_APILOG_FORMAT (enables/disables JSON formatted logs for API requests).
+2. **Set global variables**: The script sets global variables that control its behavior and store important information. These variables include:
+   - `API key`: The API key required to authenticate with the AbuseIPDB API, ensuring authorized access to the service.
+   - `File paths`: Default file paths for log files and JSON formatted log files, determining where the log data is saved on the system.
+   - `Debugging options`: Various options affecting the script's debugging behavior:
+     - `DEBUG`: A boolean variable that enables or disables debug mode, which controls whether the script sends reports to the API or logs data locally.
+     - `LOG_API_REQUEST`: A boolean variable that determines whether API requests and responses are logged to a file.
+     - `LOG_MODE`: A variable that sets the log mode to either 'full' or 'compact', affecting the amount of information logged.
+   - `JSON formatting options`: Options that control the format of log files:
+     - `JSON_LOG_FORMAT`: A boolean variable that enables or disables JSON formatted logs in debug mode, determining the format of locally saved log data.
+     - `JSON_APILOG_FORMAT`: A boolean variable that enables or disables JSON formatted logs for API requests, affecting the format of logged API request data.
 
-3. **Define helper functions**: The script defines helper functions for various purposes:
-   - is_log_file_valid(file_path): Checks if the log file format is valid by reading the last two characters of the file and ensuring that they are '\n]'.
-   - contains_cluster_member_pattern(message): Checks if the given message contains a pattern indicating a cluster member submission. This is done using regular expressions to match the message against the pattern "Cluster member (IP) (Name) said,".
-   - parse_args(): Parses command-line arguments and sets default values for the log file paths. It also checks if the provided log file paths are valid and sets the appropriate file paths accordingly.
+3. **Define helper functions**: The script defines several helper functions to perform various tasks and streamline the main code. These functions include:
+   - `is_log_file_valid(file_path)`: Accepts a file path as input and checks if the log file format is valid by reading the last two characters of the file and ensuring that they are '\n]'. Returns a boolean value indicating the validity of the log file.
+   - `contains_cluster_member_pattern(message)`: Accepts a message string as input and checks if it contains a pattern indicating a cluster member submission. This is done using regular expressions to match the message against the pattern "Cluster member (IP) (Name) said,". Returns a boolean value indicating the presence of the cluster member pattern.
+   - `parse_args()`: Parses command-line arguments provided to the script and sets default values for the log file paths. This function also checks if the provided log file paths are valid and sets the appropriate file paths accordingly. Returns an object containing the parsed arguments.
 
-4. **Extract information from CSF log data**: The script extracts relevant information from the log data provided by the CSF Firewall:
-   - IP address: The IP address associated with the log entry.
-   - Categories: Based on the trigger provided in the log entry, the script sets appropriate AbuseIPDB categories (e.g., 21 for SSH, 14 for Port Scan, 18 for SMTP).
-   - Comment: The script masks sensitive information in the log entry's message and uses it as the comment for the AbuseIPDB report.
+4. **Extract information from CSF log data**: The script processes log data provided by the CSF Firewall and extracts relevant information for reporting to the AbuseIPDB API. The extracted information includes:
+   - `IP address`: The script identifies the IP address associated with the log entry using regular expressions, which is later used as a parameter for the AbuseIPDB API request.
+   - `Categories`: Based on the trigger found in the log entry (e.g., SSH, Port Scan, SMTP), the script sets appropriate AbuseIPDB categories (e.g., 21 for SSH, 14 for Port Scan, 18 for SMTP) to be included in the API request.
+   - `Comment`: To avoid exposing sensitive information, the script masks certain parts of the log entry's message. It then uses the masked message as the comment for the AbuseIPDB report, providing context for the reported abuse incident.
 
-5. **Debug mode handling**: If the script is in DEBUG mode (DEBUG = True), it logs the extracted data to a local file instead of sending it to the AbuseIPDB API. The script supports both plain text and JSON formatted logs:
-   - Plain text logs: The script writes the log data in plain text format to the DEFAULT_LOG_FILE path.
-   - JSON formatted logs: If JSON_LOG_FORMAT is set to True, the script writes the log data in JSON format to the DEFAULT_JSONLOG_FILE path. It appends new log entries to the existing JSON log file or creates a new JSON log file if it does not exist.
+5. **Debug mode handling**: The script offers a DEBUG mode (`DEBUG = True`) which logs the extracted data to local files instead of sending reports to the AbuseIPDB API. This feature is particularly useful for testing, troubleshooting, and verifying the script's functionality before using it in a live environment. In DEBUG mode, the script supports two types of log formats - plain text and JSON formatted logs:
+   - `Plain text logs`: When using plain text logs, the script writes the extracted data in a human-readable format to the file specified by the `DEFAULT_LOG_FILE` path. This log file includes all relevant information from the CSF Firewall log data, such as the IP address, AbuseIPDB categories, and the masked comment. The plain text format allows for easy manual inspection and understanding of the logged information.
+   - `JSON formatted logs`: If the `JSON_LOG_FORMAT` option is set to `True`, the script writes the log data in JSON format to the file specified by the `DEFAULT_JSONLOG_FILE` path. JSON formatted logs offer several advantages, such as easier parsing and processing by other tools or scripts, and better structure for programmatic analysis. In this mode, the script appends new log entries to the existing JSON log file, maintaining a valid JSON structure. If the JSON log file does not exist or is invalid, the script creates a new JSON log file with the current log entry as the first entry.
 
-6. **Send report to AbuseIPDB API**: If the script is not in DEBUG mode, it checks if the current submission is from a cluster member and if the IGNORE_CLUSTER_SUBMISSIONS option is enabled. If these conditions are not met, it proceeds to send the report to the AbuseIPDB API using a POST request with the following parameters:
-   - IP: The URL-encoded IP address associated with the log entry.
-   - Categories: The AbuseIPDB categories determined based on the trigger in the log entry.
-   - Comment: The masked comment extracted from the log entry's message.
+In addition to the above formats, the script checks the validity of the log files before appending new entries. This ensures that the log files maintain a consistent structure, making it easier to manage and analyze the logged data over time.
 
-7. **API response handling**: The script receives a JSON response from the AbuseIPDB API and decodes it. If the LOG_API_REQUEST option is enabled, the script logs the following information to the DEFAULT_APILOG_FILE (for plain text) or the DEFAULT_JSONAPILOG_FILE (for JSON formatted logs):
-   - Version: The script's version number.
-   - URL: The URL of the API request.
-   - Headers: The headers used in the API request.
-   - IP: The IP address associated with the log entry.
-   - Categories: The AbuseIPDB categories associated with the log entry.
-   - Comment: The masked comment extracted from the log entry's message.
+6. **Send report to AbuseIPDB API**: If the script is not in DEBUG mode (`DEBUG = False`), it proceeds to send the extracted information to the AbuseIPDB API. However, before sending the report, the script checks if the current submission is from a cluster member (`contains_cluster_member_pattern(message)`), and if the `IGNORE_CLUSTER_SUBMISSIONS` option is enabled. These checks ensure that only relevant and desired submissions are sent to the AbuseIPDB API. If the conditions are not met, the script sends the report to the API using a POST request. The following parameters are included in the request:
+   - `IP`: The URL-encoded IP address (`url_encoded_ip`) extracted from the CSF Firewall log entry. This is the main subject of the report, representing the source of the malicious activity.
+   - `Categories`: The AbuseIPDB categories (`categories`) are determined based on the trigger (`trigger`) in the log entry. These categories help AbuseIPDB classify the type of abuse associated with the reported IP address (e.g., SSH abuse, Port Scan, SMTP abuse, etc.).
+   - `Comment`: The masked comment (`masked_comment`) extracted from the log entry's message (`message`). The comment provides additional information and context about the reported activity, such as the specific rule that was triggered or the nature of the abuse. Sensitive information is masked to protect the privacy of the reporting party and the integrity of the report.
 
-8. **Error handling**: In case of errors, the script handles them gracefully and logs the error messages to the appropriate log files. This includes handling invalid log files, API request failures, and other unexpected issues.
+By sending the report to the AbuseIPDB API, the script effectively shares information about malicious IP addresses with the wider community. This helps improve the overall security landscape by allowing other network administrators to block or take appropriate action against these IPs in their own environments.
 
-Overall, this custom Python script provides an efficient way to report banned IP addresses to the AbuseIPDB API when using the CSF Firewall BLOCK_REPORT feature. It allows for various configurations, including debugging options and JSON formatted logs, making it easy to adapt to different use cases and requirements.
+7. **API response handling**: After sending the report to the AbuseIPDB API, the script receives a JSON response (`response.text`). It then decodes the response using the `json.loads()` function to obtain a more readable Python dictionary (`decodedResponse`). Depending on the `LOG_API_REQUEST` option, the script may log the API request and response details to either a plain text file or a JSON formatted file. The following information is logged for each API request:
+   - `sentVersion`: The script's version number (`VERSION`), which is useful for tracking changes and updates.
+   - `sentURL`: The URL of the API request (`url`), which shows the endpoint to which the report was sent.
+   - `sentHeaders`: The headers (`headers`) used in the API request, including the API key for authentication.
+   - `sentIP`: The original IP address (`args.arguments[0]`) associated with the log entry, without URL encoding.
+   - `sentIPencoded`: The URL-encoded IP address (`url_encoded_ip`) included in the API request.
+   - `sentCategories`: The AbuseIPDB categories (`categories`) associated with the log entry, indicating the type of abuse.
+   - `sentComment`: The masked comment (`masked_comment`) extracted from the log entry's message, providing additional context for the reported activity.
+
+The script then checks the status code (`response.status_code`) of the API response to determine the outcome of the request:
+   - `200`: Successful report submission. The script prints the decoded response's data field (`decodedResponse['data']`) to the console, showing the details of the submitted report.
+   - `429`: Rate limit exceeded. The script prints the error message (`decodedResponse['errors'][0]`) to the console, informing the user that the API rate limit has been reached.
+   - `422`: Unprocessable Entity. The script prints the error message (`decodedResponse['errors'][0]`) to the console, indicating that the API request contained invalid or incomplete data.
+   - `302`: Redirected to HTTPS. The script prints a message to the console, indicating that an unsecure protocol was requested and the request was redirected to HTTPS.
+
+By handling the API response, the script provides feedback to the user about the outcome of the report submission and ensures that any errors or issues are logged and presented appropriately.
+
+8. **Error handling**: The script is designed to handle various errors and unexpected situations gracefully to ensure smooth operation and provide useful feedback to the user. This includes handling issues related to log files, API requests, and other unexpected conditions:
+   - **Invalid log files**: The `is_log_file_valid()` function checks if the log file format is valid by reading the last two characters of the file and ensuring that they are '\\n]'. If the log file is not valid, the script creates a new log file to store the log data.
+   - **API request failures**: If the script encounters an error while sending a request to the AbuseIPDB API (e.g., due to network issues or an incorrect API key), it provides an error message to the user and logs the relevant information to the appropriate log files. This helps users identify and troubleshoot issues with their API requests.
+   - **Unexpected issues**: The script includes various error-checking mechanisms, such as checking if the provided log file paths are valid, ensuring that required command-line arguments are supplied, and validating the JSON response received from the API. If an unexpected issue arises, the script provides an informative error message to the user and logs the relevant details to the appropriate log files.
+
+By incorporating comprehensive error handling, the script ensures that it can operate reliably and provide useful feedback to the user in case of issues. This makes it easier for users to identify and resolve any problems that might occur while using the script to report banned IP addresses to the AbuseIPDB API.
+
+In summary, this custom Python script offers a comprehensive and adaptable solution for users of the CSF Firewall BLOCK_REPORT feature to report banned IP addresses to the AbuseIPDB API. By providing a wide range of configuration options, including debugging settings and JSON formatted logs, the script caters to various use cases and requirements. The script also includes thorough error handling, ensuring smooth operation and informative feedback for the user, making it a reliable and user-friendly solution for abuse reporting.
 
 
 

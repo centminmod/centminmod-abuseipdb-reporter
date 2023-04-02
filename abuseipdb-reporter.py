@@ -27,7 +27,12 @@
 # you can change it to LOG_MODE = 'compact' to only sent the 1st
 # log file line instead of the full log file.
 ####################################################################
-import requests
+try:
+    import requests
+except ImportError:
+    print("The 'requests' package is not installed. Please install it by running:")
+    print("pip3 install requests")
+    exit(1)
 import json
 import sys
 import argparse
@@ -39,7 +44,7 @@ import os
 import atexit
 from urllib.parse import quote
 
-VERSION = "0.2.2"
+VERSION = "0.2.3"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -64,7 +69,8 @@ DEFAULT_APILOG_FILE = '/var/log/abuseipdb-reporter-api.log'
 DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'
 
 # Set the replacement words to mask data that references
-# usernames and account usernames
+# usernames and account usernames. If set in .ini file you can remove
+# single quotes
 USERNAME_REPLACEMENT = '[USERNAME]'
 ACCOUNT_REPLACEMENT = '[REDACTED]'
 
