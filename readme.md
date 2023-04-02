@@ -93,6 +93,28 @@ Mar 27 08:33:28 host lfd[572611]: IPSET: loading set new_6_BDE with 1 entries
 Mar 27 08:33:28 host lfd[572611]: IPSET: switching set new_6_BDE to bl_6_BDE
 ```
 
+You can calculate your CSF Firewall IPSET chain memory usage and number of IP entries using command:
+
+```
+ipset list -t | awk '/^Name:/ { name=$2 } /^Size in memory:/ { memory+=$4 } /^Number of entries:/ { entries+=$4 } END { printf "Total IPSET Entries: %d\nTotal IPSET Memory Usage: %.2f MB\nTotal IPSET Chains: %d\n", entries, memory/1048576, NR }'
+
+Total IPSET Entries: 47652
+Total IPSET Memory Usage: 1.28 MB
+Total IPSET Chains: 287
+```
+
+List all IPSET chains
+
+```
+ipset list -t
+```
+
+In JSON format
+
+```
+ipset list -t | awk '/^Name:/ { name=$2 } /^Type:/ { type=$2 } /^Revision:/ { revision=$2 } /^Header:/ { header=$0 } /^Size in memory:/ { size_in_memory=$4 } /^References:/ { references=$2 } /^Number of entries:/ { number_of_entries=$4; printf "{\"name\":\"%s\", \"type\":\"%s\", \"revision\":\"%s\", \"header\":\"%s\", \"size_in_memory\":\"%s\", \"references\":\"%s\", \"number_of_entries\":\"%s\"}\n", name, type, revision, header, size_in_memory, references, number_of_entries }' | jq -s .
+```
+
 3. Reporting to AbuseIPDB
 
 Setup the `abuseipdb-reporter.py` Python script on your Centmin Mod LEMP stack server. You can save it to any location you want. For this example, saved to `/root/tools/abuseipdb-reporter.py`.
