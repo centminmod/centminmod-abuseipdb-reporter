@@ -45,7 +45,7 @@ import atexit
 import time
 from urllib.parse import quote
 
-VERSION = "0.2.5"
+VERSION = "0.2.6"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -189,9 +189,12 @@ print("Trigger:", trigger)
 def load_cache():
     if os.path.exists(CACHE_FILE):
         with open(CACHE_FILE, "r") as f:
-            return json.load(f)
+            cache = json.load(f)
     else:
-        return {}
+        cache = {}
+    
+    print("Loaded cache:", cache)
+    return cache
 
 def save_cache(cache):
     with open(CACHE_FILE, "w") as f:
@@ -199,14 +202,18 @@ def save_cache(cache):
 
 def clean_cache(cache):
     current_time = time.time()
-    cleaned_cache = {ip: timestamp for ip, timestamp in cache.items() if current_time - timestamp < CACHE_DURATION}
+    cleaned_cache = {ip: timestamp for ip, timestamp in cache.items() if current_time - timestamp < CACHE_DURATION}   
+    print("Cleaned cache:", cleaned_cache)
     return cleaned_cache
 
 def ip_in_cache(ip, cache):
-    return ip in cache
+    in_cache = ip in cache
+    print("IP in cache:", in_cache)
+    return in_cache
 
 def update_cache(ip, cache):
     cache[ip] = time.time()
+    print("Updated cache:", cache)
 
 def get_all_public_ips():
     try:
@@ -414,6 +421,7 @@ else:
     # Load and clean the cache
     cache = load_cache()
     cache = clean_cache(cache)
+    print("Current cache:", cache)
 
     if not (IGNORE_CLUSTER_SUBMISSIONS and contains_cluster_member_pattern(message)):
         # Check if the IP address is in the cache before sending the report
