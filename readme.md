@@ -757,6 +757,9 @@ The script performs the following actions:
    - `sys`, `argparse`: Built-in modules for handling command-line arguments, enabling users to provide input and options to the script.
    - `socket`, `re`, `subprocess`: Built-in modules for processing and extracting information from log data. `socket` is used for network-related operations, `re` for regular expressions and pattern matching, and `subprocess` for running external commands.
    - `configparser`, `os`, `atexit`: Built-in modules for reading and writing configuration files and handling file paths. `configparser` simplifies reading and writing INI-style configuration files, `os` provides a cross-platform interface for file and directory operations, and `atexit` allows the script to register cleanup functions that will be executed when the script exits.
+   - `time`: A built-in module for handling various time-related tasks, such as pausing the script execution and measuring elapsed time.
+   - `urllib.parse.quote`: A function from the `urllib.parse` module, which is used for URL encoding.
+
 
 2. **Set global variables**: The script sets global variables that control its behavior and store important information. These variables include:
    - `API key`: The API key required to authenticate with the AbuseIPDB API, ensuring authorized access to the service.
@@ -768,6 +771,10 @@ The script performs the following actions:
    - `JSON formatting options`: Options that control the format of log files:
      - `JSON_LOG_FORMAT`: A boolean variable that enables or disables JSON formatted logs in debug mode, determining the format of locally saved log data.
      - `JSON_APILOG_FORMAT`: A boolean variable that enables or disables JSON formatted logs for API requests, affecting the format of logged API request data.
+     - `IGNORE_CLUSTER_SUBMISSIONS`: A boolean variable that determines whether the script should ignore Cluster member reports for submission to the AbuseIPDB API (`True`) or send Cluster member reports to the API (`False`).
+     - `CACHE_FILE`: A string that defines the local IP submission cache file name.
+     - `CACHE_DURATION`: An integer that sets the cache duration in seconds (e.g., 900 seconds for a 15-minute cache).
+
 
 3. **Define helper functions**: The script defines several helper functions to perform various tasks and streamline the main code. These functions include:
    - `is_log_file_valid(file_path)`: Accepts a file path as input and checks if the log file format is valid by reading the last two characters of the file and ensuring that they are '\n]'. Returns a boolean value indicating the validity of the log file.
