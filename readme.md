@@ -764,6 +764,9 @@ The script performs the following actions:
 2. **Set global variables**: The script sets global variables that control its behavior and store important information. These variables include:
    - `API key`: The API key required to authenticate with the AbuseIPDB API, ensuring authorized access to the service.
    - `File paths`: Default file paths for log files and JSON formatted log files, determining where the log data is saved on the system.
+   - `IGNORE_CLUSTER_SUBMISSIONS`: A boolean variable that determines whether the script should ignore Cluster member reports for submission to the AbuseIPDB API (`True`) or send Cluster member reports to the API (`False`).
+   - `CACHE_FILE`: A string that defines the local IP submission cache file name.
+   - `CACHE_DURATION`: An integer that sets the cache duration in seconds (e.g., 900 seconds for a 15-minute cache).
    - `Debugging options`: Various options affecting the script's debugging behavior:
      - `DEBUG`: A boolean variable that enables or disables debug mode, which controls whether the script sends reports to the API or logs data locally.
      - `LOG_API_REQUEST`: A boolean variable that determines whether API requests and responses are logged to a file.
@@ -771,9 +774,6 @@ The script performs the following actions:
    - `JSON formatting options`: Options that control the format of log files:
      - `JSON_LOG_FORMAT`: A boolean variable that enables or disables JSON formatted logs in debug mode, determining the format of locally saved log data.
      - `JSON_APILOG_FORMAT`: A boolean variable that enables or disables JSON formatted logs for API requests, affecting the format of logged API request data.
-     - `IGNORE_CLUSTER_SUBMISSIONS`: A boolean variable that determines whether the script should ignore Cluster member reports for submission to the AbuseIPDB API (`True`) or send Cluster member reports to the API (`False`).
-     - `CACHE_FILE`: A string that defines the local IP submission cache file name.
-     - `CACHE_DURATION`: An integer that sets the cache duration in seconds (e.g., 900 seconds for a 15-minute cache).
 
 
 3. **Define helper functions**: The script defines several helper functions to perform various tasks and streamline the main code. These functions include:
