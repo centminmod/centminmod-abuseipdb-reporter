@@ -3,10 +3,11 @@ import os
 import re
 import datetime
 
+debug = False
 log_file_path = '/var/log/lfd.log'
 
 def parse_timestamp(line):
-    pattern = r'(\w{3}\s\d{1,2}\s\d{2}:\d{2}:\d{2})'
+    pattern = r'(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})'
     match = re.search(pattern, line)
     if match:
         timestamp = datetime.datetime.strptime(match.group(1), '%b %d %H:%M:%S')
@@ -15,7 +16,7 @@ def parse_timestamp(line):
         return timestamp
     return None
 
-def calculate_lfd_rate(log_file_path):
+def calculate_lfd_rate(log_file_path, debug=False):
     if not os.path.exists(log_file_path):
         print("Log file not found.")
         return
@@ -29,9 +30,16 @@ def calculate_lfd_rate(log_file_path):
         'hour': {},
         'day': {}
     }
-    
+
+    line_count = 0
+    matched_line_count = 0
+
     for line in lines:
-        if "*SSH login*" not in line:
+        line_count += 1
+        if re.search(r'\bSSH login\b', line) or re.search(r'\bBlocked in csf\b', line):
+            matched_line_count += 1
+            if debug:
+                print(f"Matched line {matched_line_count}: {line.strip()}")
             timestamp = parse_timestamp(line)
             if timestamp:
                 for unit in lfd_counts:
@@ -45,15 +53,23 @@ def calculate_lfd_rate(log_file_path):
                         key_format = '%Y-%m-%d'
 
                     unit_key = timestamp.strftime(key_format)
+
                     if unit_key not in lfd_counts[unit]:
-                        lfd_counts[unit][unit_key] = 0
-                    lfd_counts[unit][unit_key] += 1
+                        lfd_counts[unit][unit_key] = 1
+                    else:
+                        lfd_counts[unit][unit_key] += 1
+
+    print(f"Total lines processed: {line_count}")
+    print(f"Total matched lines: {matched_line_count}")
 
     for unit, counts in lfd_counts.items():
-        print("LFD actions per {}:".format(unit))
-        for unit_key, count in counts.items():
-            print("  {}: {} lfd actions".format(unit_key, count))
+        print(f"LFD actions per {unit}:")
+        if counts:
+            for unit_key, count in sorted(counts.items()):
+                print(f"  {unit_key}: {count} lfd actions")
+        else:
+            print(f"  No actions found for {unit}")
         print()
 
 if __name__ == '__main__':
-    calculate_lfd_rate(log_file_path)
+    calculate_lfd_rate(log_file_path, debug=debug)
