@@ -625,6 +625,10 @@ When submission goes through from `DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb
 }
 ```
 
+Example of AbuseIPDB site database listing for reported IP addresses from CSF Firewall passed on data.
+
+![AbuseIPDB reported IPs](screenshots/abuseipdb-reporter-report-listing-01.png "AbuseIPDB reported IPs")
+
 # Manual Tests
 
 You can pass data directly to `abuseipdb-reporter.py` Python script to check it's output as well.
