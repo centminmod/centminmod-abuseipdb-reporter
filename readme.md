@@ -129,7 +129,7 @@ ipset list -t | awk '/^Name:/ { name=$2 } /^Type:/ { type=$2 } /^Revision:/ { re
 
 3. Reporting to AbuseIPDB
 
-Setup the `abuseipdb-reporter.py` Python script on your Centmin Mod LEMP stack server. You can save it to any location you want. For this example, saved to `/root/tools/abuseipdb-reporter.py`.
+Setup the `abuseipdb-reporter.py` Python script on your Centmin Mod LEMP stack server and for CSF Firewall `BLOCK_REPORT`. You can save it to any location you want. For this example, saved to `/root/tools/abuseipdb-reporter.py`.
 
 Ensure `/root/tools/abuseipdb-reporter.py` is executable using `chmod`:
 
@@ -143,6 +143,24 @@ Or clone this repo:
 cd /home
 git clone https://github.com/centminmod/centminmod-abuseipdb-reporter
 cd /home/centminmod-abuseipdb-reporter
+```
+
+Set the `BLOCK_REPORT` variable in `/etc/csf.conf` to the executable script file.
+
+```
+BLOCK_REPORT = "/root/tools/abuseipdb-reporter.py"
+```
+
+or
+
+```
+BLOCK_REPORT = "/home/centminmod-abuseipdb-reporter/abuseipdb-reporter.py"
+```
+
+restart CSF and lfd using:
+
+```
+csf -ra
 ```
 
 ## Configuration
@@ -525,24 +543,6 @@ Example of `DEBUG = True` debug mode with `JSON_LOG_FORMAT = True` saved log fil
 ```
 
 For JSON format, the key names prefixed with `sent` are data that is sent to AbuseIPDB. While key names prefixed with `notsent` is data CSF passed onto the script. The CSF passed data also reveals your Cluster member's real IP address `45.xxx.xxx.xxx`. The `abuseipdb-reporter.py` script will remove that and the full line `Cluster member 45.xxx.xxx.xxx (US/United States/-) said,` from the data intended to be sent to AbuseIPDB so it doesn't reveal your CSF Cluster member IP addresses.
-
-4. Set the `BLOCK_REPORT` variable in `/etc/csf.conf` to the executable script file.
-
-```
-BLOCK_REPORT = "/root/tools/abuseipdb-reporter.py"
-```
-
-or
-
-```
-BLOCK_REPORT = "/home/centminmod-abuseipdb-reporter/abuseipdb-reporter.py"
-```
-
-restart CSF and lfd using:
-
-```
-csf -ra
-```
 
 # AbuseIPDB API Submissions
 
