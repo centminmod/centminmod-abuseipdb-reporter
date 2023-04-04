@@ -639,13 +639,13 @@ Advantages of using JSON logged submissions is you can parse and query your `DEF
 
 Full JSON logged AbuseIPDB API submissions:
 
-```json
+```bash
 cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[]'
 ```
 
 Added in `0.2.7` version a `notsentTrigger` key in JSON API logs to only lookup and filter JSON logged AbuseIPDB API submissions for `PS_LIMIT` port scan attacks:
 
-```json
+```bash
 cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[] | select(.notsentTrigger == "PS_LIMIT")'
 ``` 
 
