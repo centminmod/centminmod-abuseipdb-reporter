@@ -653,14 +653,38 @@ Advantages of using JSON logged submissions is you can parse and query your `DEF
 Full JSON logged AbuseIPDB API submissions:
 
 ```bash
-cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[]'
+cat /var/log/abuseipdb-reporter-api-json.log | jq -r '.[]'
 ```
 
 Added in `0.2.7` version a `notsentTrigger` key in JSON API logs to only lookup and filter JSON logged AbuseIPDB API submissions for `PS_LIMIT` port scan attacks:
 
 ```bash
-cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[] | select(.notsentTrigger == "PS_LIMIT")'
-``` 
+cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[] | select(.notsentTrigger == "PS_LIMIT")' | jq -r
+```
+
+Only lookup and filter JSON logged AbuseIPDB API submissions for `LF_DISTATTACK` attacks:
+
+```bash
+cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[] | select(.notsentTrigger == "LF_DISTATTACK")' | jq -r
+```
+
+Only lookup and filter JSON logged AbuseIPDB API submissions for `LF_SSHD` attacks:
+
+```bash
+cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[] | select(.notsentTrigger == "LF_SSHD")' | jq -r
+```
+
+Filter for specific IP address:
+
+```bash
+cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[] | select(.sentIP == "129.xxx.xxx.xxx")' | jq -r
+```
+
+Filter for specific IP address and `notsentTrigger` = `LF_SSHD`:
+
+```bash
+cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[] | select(.notsentTrigger == "LF_SSHD" and .sentIP == "129.xxx.xxx.xxx")' | jq -r
+```
 
 ## Port Scan Submission
 
