@@ -261,7 +261,7 @@ LOG_API_REQUEST = True
 LOG_MODE = full
 JSON_LOG_FORMAT = False
 JSON_APILOG_FORMAT = False
-IGNORE_CLUSTER_SUBMISSIONS = False
+IGNORE_CLUSTER_SUBMISSIONS = True
 API_KEY = YOUR_API_KEY
 DEFAULT_LOG_FILE = /var/log/abuseipdb-reporter-debug.log
 DEFAULT_JSONLOG_FILE = /var/log/abuseipdb-reporter-debug-json.log
@@ -273,6 +273,19 @@ USERNAME_REPLACEMENT = [USERNAME]
 ACCOUNT_REPLACEMENT = [REDACTED]
 CACHE_FILE = ip_cache.json
 CACHE_DURATION = 900
+```
+
+Here's an example `abuseipdb-reporter.ini` settings config to enable API submissions to AbuseIPDB, with compact log format and JSON logging that ignores Cluster member entries where you'd inspect `DEFAULT_JSONLOG_FILE = /var/log/abuseipdb-reporter-debug-json.log` and `DEFAULT_JSONAPILOG_FILE = /var/log/abuseipdb-reporter-api-json.log` JSON logs.
+
+```
+[settings]
+DEBUG = False
+LOG_API_REQUEST = True
+LOG_MODE = compact
+JSON_LOG_FORMAT = True
+JSON_APILOG_FORMAT = True
+IGNORE_CLUSTER_SUBMISSIONS = True
+API_KEY = YOUR_API_KEY
 ```
 
 ### Log Inspection
