@@ -23,6 +23,9 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
 * [CSF Cluster Mode](#csf-cluster-mode)
   * [JSON log format CSF Cluster](#json-log-format-csf-cluster)
 * [AbuseIPDB API Submissions](#abuseipdb-api-submissions)
+  * [Plaintext Logged Submission](#plaintext-logged-submission)
+  * [JSON Logged Submission](#json-logged-submission)
+  * [Port Scan Submission](#port-scan-submission)
 * [Manual Tests](#manual-tests)
 * [Additional Tools](#additional-tools)
 * [Credits](#credits)
@@ -548,6 +551,8 @@ For JSON format, the key names prefixed with `sent` are data that is sent to Abu
 
 For AbuseIPDB API submissions of CSF Firewall LFD actions, you need to set `DEBUG = False` and then you can inspect the relevant logs.
 
+## Plaintext Logged Submission
+
 When `JSON_LOG_FORMAT = False` set
 
 
@@ -574,6 +579,8 @@ API Response: {
 ############################################################################
 --------
 ```
+
+## JSON Logged Submission
 
 When `JSON_LOG_FORMAT = True` set, you can inspect JSON formatted logs for the data that was sent and also the `apiResponse` returned by AbuseIPDB API endpoint.
 
@@ -623,6 +630,37 @@ When submission goes through from `DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb
     }
   }
 }
+```
+
+## Port Scan Submission
+
+Example of a CSF Firewall Port Scan `PS_LIMIT` classified attack LFD logged action submitted to AbuseIPDB which includes the relevant `/var/log/messsages` log details with the privacy masking hiding the real server IP for destination IP address `DST=0.0.0.x` using the defined variable `mask_ip = 0.0.0.x`. Without this privacy masking, you would send to public AbuseIPDB IP reports your real server IP address via `DST=YOUR_REAL_IP_ADDRESS`. This was with `LOG_MODE = compact` set so only the 1st line of `/var/log/messsages` log details is included rather than the full log line details.
+
+```json
+{
+  "sentVersion": "0.2.6",
+  "sentURL": "https://api.abuseipdb.com/api/v2/report",
+  "sentHeaders": {
+    "Accept": "application/json",
+    "Key": "MYKEY"
+  },
+  "sentIP": "35.xxx.xxx.xxx",
+  "sentIPencoded": "35.xxx.xxx.xxx",
+  "sentCategories": "14",
+  "sentComment": "*Port Scan* detected from 35.xxx.xxx.xxx (US/United States/ec2-35-xxx-xxx-xxx.us-west-2.compute.amazonaws.com). 16 hits in the last 240 seconds; Ports: *; Direction: in; Trigger: PS_LIMIT; Logs: Apr  4 02:44:18 kernel: Firewall: *TCP_IN Blocked* IN=eth0 OUT= MAC=00:16:3c:58:ef:51:00:0c:db:f5:6d:00:08:00 SRC=35.xxx.xxx.xxx DST=0.0.0.x LEN=44 TOS=0x00 PREC=0x00 TTL=17 ID=6799 PROTO=TCP SPT=14833 DPT=111 WINDOW=1024 RES=0x00 SYN URGP=0 ",
+  "apiResponse": {
+    "data": {
+      "ipAddress": "35.xxx.xxx.xxx",
+      "abuseConfidenceScore": 2
+    }
+  }
+}
+```
+
+The CSF Firewall `/var/log/lfd.log` logged Port Scan attack would be like below - notice the above sent report also removes the `hostname` referenced from the log:
+
+```
+Apr  4 01:17:51 hostname lfd[37133]: *Port Scan* detected from 35.xxx.xxx.xxx (US/United States/ec2-35-xxx-xxx-xxx.us-west-2.compute.amazonaws.com). 16 hits in the last 161 seconds - *Blocked in csf* for 3600 secs [PS_LIMIT]
 ```
 
 Example of AbuseIPDB site database listing for reported IP addresses from CSF Firewall passed on data.
