@@ -45,7 +45,7 @@ import atexit
 import time
 from urllib.parse import quote
 
-VERSION = "0.2.6"
+VERSION = "0.2.7"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -439,6 +439,7 @@ else:
                     "sentIPencoded": url_encoded_ip,
                     "sentCategories": categories,
                     "sentComment": masked_comment,
+                    "notsentTrigger": trigger,
                     "apiResponse": decodedResponse
                 }
         

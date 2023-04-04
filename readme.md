@@ -25,6 +25,7 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
 * [AbuseIPDB API Submissions](#abuseipdb-api-submissions)
   * [Plaintext Logged Submission](#plaintext-logged-submission)
   * [JSON Logged Submission](#json-logged-submission)
+    * [JSON Log Submission Parsing](#json-log-submission-parsing)
   * [Port Scan Submission](#port-scan-submission)
 * [Manual Tests](#manual-tests)
 * [Additional Tools](#additional-tools)
@@ -632,6 +633,22 @@ When submission goes through from `DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb
 }
 ```
 
+### JSON Log Submission Parsing
+
+Advantages of using JSON logged submissions is you can parse and query your `DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'` defined JSON log as you you would like when `JSON_LOG_FORMAT = True` is set.
+
+Full JSON logged AbuseIPDB API submissions:
+
+```json
+cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[]'
+```
+
+Added in `0.2.7` version a `notsentTrigger` key in JSON API logs to only lookup and filter JSON logged AbuseIPDB API submissions for `PS_LIMIT` port scan attacks:
+
+```json
+cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[] | select(.notsentTrigger == "PS_LIMIT")'
+``` 
+
 ## Port Scan Submission
 
 Example of a CSF Firewall Port Scan `PS_LIMIT` classified attack LFD logged action submitted to AbuseIPDB which includes the relevant `/var/log/messsages` log details with the privacy masking hiding the real server IP for destination IP address `DST=0.0.0.x` using the defined variable `mask_ip = 0.0.0.x`. Without this privacy masking, you would send to public AbuseIPDB IP reports your real server IP address via `DST=YOUR_REAL_IP_ADDRESS`. This was with `LOG_MODE = compact` set so only the 1st line of `/var/log/messsages` log details is included rather than the full log line details.
@@ -875,7 +892,3 @@ By handling the API response, the script provides feedback to the user about the
 By incorporating comprehensive error handling, the script ensures that it can operate reliably and provide useful feedback to the user in case of issues. This makes it easier for users to identify and resolve any problems that might occur while using the script to report banned IP addresses to the AbuseIPDB API.
 
 In summary, this custom Python script offers a comprehensive and adaptable solution for users of the CSF Firewall BLOCK_REPORT feature to report banned IP addresses to the AbuseIPDB API. By providing a wide range of configuration options, including debugging settings and JSON formatted logs, the script caters to various use cases and requirements. The script also includes thorough error handling, ensuring smooth operation and informative feedback for the user, making it a reliable and user-friendly solution for abuse reporting.
-
-
-
-
