@@ -29,6 +29,8 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
   * [Port Scan Submission](#port-scan-submission)
 * [Manual Tests](#manual-tests)
 * [Additional Tools](#additional-tools)
+  * [lfd-rate.py](#lfd-ratepy)
+  * [abuseipdb-checker.py](#abuseipdb-checkerpy)
 * [Credits](#credits)
 
 ## Dependencies
@@ -783,6 +785,8 @@ Trigger: LF_SSHD
 
 # Additional Tools
 
+## lfd-rate.py
+
 `lfd-rate.py` can parse the CSF Firewall `/var/log/lfd.log` log and calculate the rate of LFD actions in terms of log entries for per second, minute, hour and daily metrics.
 
 ```
@@ -841,6 +845,85 @@ LFD actions per day:
   2023-03-29: 350 lfd actions
   2023-03-30: 344 lfd actions
   2023-03-31: 271 lfd actions
+```
+
+## abuseipdb-checker.py
+
+`abuseipdb-checker.py` can use the same AbuseIPDB key setting set in [abuseipdb-reporter.ini](#abuseipdb-reporterini) and lookup specific IP addresses in AbuseIPDB database and return details about the specific IP address.
+
+
+### abuseipdb-checker.py Arguments
+
+- `-ip IP`: **(required)** The IP address to query.
+- `-maxdays MAXDAYS`: (optional) The maximum age in days of the data to return (default is 7).
+- `-apikey APIKEY`: (optional) Your API key for AbuseIPDB. If not provided, the script will try to read it from the environment variable or the [abuseipdb-reporter.ini](#abuseipdb-reporterini) settings file.
+- `-reports {yes,no}`: (optional) Whether to include reports data in the output. Default is `yes`. Set to `no` to exclude reports data.
+
+```
+./abuseipdb-checker.py
+usage: abuseipdb-checker.py [-h] -ip IP [-maxdays MAXDAYS] [-apikey APIKEY]
+                            [-reports {yes,no}]
+abuseipdb-checker.py: error: the following arguments are required: -ip
+```
+
+Look up IP address `-ip 121.135.74.65` but don't return individual user reports for the IP address `-reports no`
+
+```
+./abuseipdb-checker.py -ip 121.135.74.65 -reports no | jq -r
+```
+```json
+{
+  "ipAddress": "121.135.74.65",
+  "isPublic": true,
+  "ipVersion": 4,
+  "isWhitelisted": false,
+  "abuseConfidenceScore": 100,
+  "countryCode": "KR",
+  "usageType": null,
+  "isp": "KT Corporation",
+  "totalReports": 106,
+  "numDistinctUsers": 93,
+  "reportsInfo": null
+}
+```
+
+Look up IP address `-ip 121.135.74.65` and return individual user reports for the IP address `-reports yes`
+
+```
+./abuseipdb-checker.py -ip 121.135.74.65 -reports yes | jq -r
+```
+```json
+{
+  "ipAddress": "121.135.74.65",
+  "isPublic": true,
+  "ipVersion": 4,
+  "isWhitelisted": false,
+  "abuseConfidenceScore": 100,
+  "countryCode": "KR",
+  "usageType": null,
+  "isp": "KT Corporation",
+  "totalReports": 109,
+  "numDistinctUsers": 95,
+  "reportsInfo": [
+    {
+      "reporterId": 86513,
+      "categories": [
+        14
+      ],
+      "reporterCountryCode": "US",
+      "reportedAt": "2023-04-04T12:03:29+00:00"
+    },
+    {
+      "reporterId": 95562,
+      "categories": [
+        18,
+        22
+      ],
+      "reporterCountryCode": "FR",
+      "reportedAt": "2023-04-04T12:02:46+00:00"
+    }
+  ]
+}
 ```
 
 # Credits
