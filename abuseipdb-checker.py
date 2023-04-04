@@ -11,7 +11,7 @@ import argparse
 import requests
 import configparser
 
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 
 def read_api_key():
     if "ABUSEIPDB_API_KEY" in os.environ:
@@ -74,7 +74,7 @@ def main():
     parser.add_argument("-ip", required=True, help="IP address to query")
     parser.add_argument("-maxdays", type=int, default=7, help="Max age in days (default is 7)")
     parser.add_argument("-apikey", help="Your API key for AbuseIPDB (optional)")
-    parser.add_argument("-reports", choices=['yes', 'no'], default='yes', help="Include reports data (default is 'yes')")
+    parser.add_argument("-reports", choices=['yes', 'no'], default='no', help="Include reports data (default is 'no')")
     args = parser.parse_args()
 
     api_key = args.apikey or read_api_key()
