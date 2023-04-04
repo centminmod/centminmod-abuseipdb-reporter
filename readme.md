@@ -1,6 +1,8 @@
+![GitHub Repo stars](https://img.shields.io/github/stars/centminmod/centminmod-abuseipdb-reporter) ![GitHub watchers](https://img.shields.io/github/watchers/centminmod/centminmod-abuseipdb-reporter) ![GitHub Sponsors](https://img.shields.io/github/sponsors/centminmod) ![GitHub top language](https://img.shields.io/github/languages/top/centminmod/centminmod-abuseipdb-reporter) ![GitHub language count](https://img.shields.io/github/languages/count/centminmod/centminmod-abuseipdb-reporter)
+
 # CSF Firewall + AbuseIPDB Integration
 
-This `abuseipdb-reporter.py` python script allows you to utilise CSF Firewall to automatically detects harmful online activity and reports it to a [AbuseIPDB security database](https://www.abuseipdb.com). It helps make the internet safer by sharing information about suspicious IP addresses with other network administrators. It's customizable, user-friendly, and provides helpful feedback for easier use and troubleshooting.
+This `abuseipdb-reporter.py` python script allows you to utilise CSF Firewall to automatically detects harmful online activity and reports it to a [AbuseIPDB security database](https://www.abuseipdb.com). It helps make the internet safer by sharing information about suspicious IP addresses with other network administrators. It's customizable, user-friendly, and provides helpful feedback for easier use and troubleshooting. If you like my work, please star it and/or become a sponsor.
 
 Tailored for Centmin Mod LEMP stack based servers that install CSF Firewall by default with a specific focus on data privacy and prevention of sensitive data leaked to public AbuseIPDB database reports. Though technically should work with any servers that use CSF Firewall. For a more detailed summary of the `abuseipdb-reporter.py` Python script and what it does, read the [Credits](#credits).
 
