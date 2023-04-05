@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import json
 from collections import defaultdict
 from datetime import datetime
@@ -23,7 +22,6 @@ for log in logs:
     trigger = log.get('notsentTrigger', 'Unknown')
     timestamp = log.get('notsentTimestamp', None)
     api_response = log.get('apiResponse', None)
-
     if api_response:
         try:
             confidence_score = api_response['data'].get('abuseConfidenceScore', 0)
@@ -31,7 +29,6 @@ for log in logs:
             ip_submissions[ip] += 1
         except KeyError:
             pass
-
     # update hourly_counts
     if timestamp:
         timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
@@ -81,17 +78,14 @@ for log in recent_logs:
 
     if confidence_score > 0:
         hourly_counts[current_hour] += 1
-
 print(f"Hourly counts: {hourly_counts}")
 
 hourly_timestamps = []
 hourly_submission_counts = []
-
 for i in range(24):
     hour = last_24_hours + timedelta(hours=i)
     hourly_timestamps.append(hour)
     hourly_submission_counts.append(hourly_counts.get(hour, 0))
-
 fig2 = go.Figure(go.Bar(x=hourly_timestamps, y=hourly_submission_counts))
 fig2.update_layout(
     title='Hourly Total IP Submissions with Abuse Confidence Scores in the Last 24 Hours',
@@ -143,7 +137,6 @@ html_template = '''
 </body>
 </html>
 '''
-
-# Update the last line of the script as follows
+# create charts.html
 with open('charts.html', 'w') as f:
     f.write(html_template.format(to_json(fig1), to_json(fig2), str(hourly_timestamps), str(hourly_submission_counts)))
