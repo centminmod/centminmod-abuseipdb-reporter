@@ -65,15 +65,8 @@ recent_logs = [
 ]
 
 # Aggregate hourly submissions
-hourly_counts = defaultdict(int)
+hourly_submission_counts = defaultdict(int)
 print(f"Logs within the last 24 hours: {len(recent_logs)}")
-
-# Define hourly_timestamps here
-hourly_timestamps = []
-for i in range(24):
-    hour = last_24_hours + timedelta(hours=i)
-    hourly_timestamps.append(hour)
-
 for log in recent_logs:
     ip = log['sentIP']
     timestamp = datetime.strptime(log['notsentTimestamp'], '%Y-%m-%d %H:%M:%S')
@@ -86,14 +79,16 @@ for log in recent_logs:
     # print(f"Confidence Score: {confidence_score}, Current Hour: {current_hour}")
 
     if confidence_score > 0:
-        hourly_counts[current_hour] += 1
-print(f"Hourly counts: {hourly_counts}")
+        hourly_submission_counts[current_hour] += 1
+print(f"Hourly counts: {hourly_submission_counts}")
 
-hourly_submission_counts = []
+hourly_timestamps = [last_24_hours + timedelta(hours=i) for i in range(24)]
+hourly_submission_counts_lst = []
 for i in range(24):
     hour = last_24_hours + timedelta(hours=i)
-    hourly_submission_counts.append(hourly_counts.get(hour, 0))
-fig2 = go.Figure(go.Bar(x=hourly_timestamps, y=hourly_submission_counts))
+    hourly_submission_counts_lst.append(hourly_submission_counts.get(hour.replace(minute=0, second=0, microsecond=0), 0))
+
+fig2 = go.Figure(go.Bar(x=hourly_timestamps, y=hourly_submission_counts_lst))
 fig2.update_layout(
     title='Hourly Total IP Submissions with Abuse Confidence Scores in the Last 24 Hours',
     xaxis_title='Hour',
@@ -176,4 +171,4 @@ html_template = r'''
 # Create charts.html
 hourly_timestamps_str = [hour.isoformat() for hour in hourly_timestamps]
 with open('charts.html', 'w') as f:
-    f.write(html_template.format(to_json(fig1), to_json(fig2), hourly_timestamps_str, hourly_timestamps_str))
+    f.write(html_template.format(to_json(fig1), to_json(fig2), hourly_timestamps, hourly_timestamps_str))

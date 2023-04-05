@@ -33,6 +33,8 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
 * [Additional Tools](#additional-tools)
   * [lfd-rate.py](#lfd-ratepy)
   * [abuseipdb-checker.py](#abuseipdb-checkerpy)
+  * [abuseipdb-plotter.py](#abuseipdb-plotterpy)
+    * [AbuseIPDB Charts](#abuseipdb-charts)
 * [Credits](#credits)
 
 ## Dependencies
@@ -663,7 +665,7 @@ Version `0.2.8` adds a `notsentTimestamp` for local log records. This allows fur
   "sentIP": "103.xxx.xxx.xxx",
   "sentIPencoded": "103.xxx.xxx.xxx",
   "sentCategories": "4",
-  "sentComment": "103.xxx.xxx.xxx (ID/Indonesia/ip23.39.31.103.in-addr.arpa.unknwn.cloudhost.asia), 5 distributed sshd attacks on account [REDACTED] in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_DISTATTACK; Logs: Apr  5 11:04:35 sshd[754533]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=156.232.12.156  user=[USERNAME]",
+  "sentComment": "103.xxx.xxx.xxx (ID/Indonesia/ipxxx.xxx.xxx.103.in-addr.arpa.unknwn.cloudhost.asia), 5 distributed sshd attacks on account [REDACTED] in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_DISTATTACK; Logs: Apr  5 11:04:35 sshd[754533]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=156.232.12.156  user=[USERNAME]",
   "notsentTrigger": "LF_DISTATTACK",
   "apiResponse": {
     "data": {
@@ -964,6 +966,37 @@ Look up IP address `-ip 121.135.74.65` and return individual user reports for th
   ]
 }
 ```
+
+## abuseipdb-plotter.py
+
+`abuseipdb-plotter.py` uses Plotly to plot charts in a `charts.html` HTML file when `abuseipdb-reporter.ini` settings config are set to enable API submissions to AbuseIPDB with JSON logging enabled `JSON_APILOG_FORMAT = True` and reads from the logged API submissions in `DEFAULT_JSONAPILOG_FILE = /var/log/abuseipdb-reporter-api-json.log` JSON log to generate the charts plot data.
+
+```
+[settings]
+DEBUG = False
+LOG_API_REQUEST = True
+LOG_MODE = compact
+JSON_LOG_FORMAT = True
+JSON_APILOG_FORMAT = True
+API_KEY = YOUR_API_KEY
+```
+
+When you run the script, it will parse the `abuseipdb-reporter.py` generated `DEFAULT_JSONAPILOG_FILE = /var/log/abuseipdb-reporter-api-json.log` JSON log entries to create a `charts.html` HTML file which has 2 charts. One chart for top 10 IP address submissions to AbuseIPDB and second chart for last 24hrs of hourly aggregate IP submissions to AbuseIPDB.
+
+Example output shows there were 246 log entries from `abuseipdb-reporter.py` generated `DEFAULT_JSONAPILOG_FILE = /var/log/abuseipdb-reporter-api-json.log` JSON log of which 23 entries met the criteria of having a the `notsentTimestamp` entry and `abuseConfidenceScore` score. Having both criteria means a successful API submission occured. The `Hourly counts:` lists each hours' aggregate count for IP address API submissions.
+
+```bash
+./abuseipdb-plotter.py 
+Total logs: 246
+Logs within the last 24 hours: 23
+Hourly counts: defaultdict(<class 'int'>, {datetime.datetime(2023, 4, 5, 11, 0): 7, datetime.datetime(2023, 4, 5, 12, 0): 1, datetime.datetime(2023, 4, 5, 15, 0): 5, datetime.datetime(2023, 4, 5, 16, 0): 6, datetime.datetime(2023, 4, 5, 18, 0): 3, datetime.datetime(2023, 4, 5, 19, 0): 1})
+```
+
+### AbuseIPDB Charts
+
+`abuseipdb-plotter.py` example `charts.html` created charts
+
+![AbuseIPDB Charts](screenshots/abuseipdb-plotter-charts-01.png "AbuseIPDB Charts")
 
 # Credits
 
