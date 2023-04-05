@@ -15,12 +15,13 @@ with open('/var/log/abuseipdb-reporter-api-json.log', 'r') as f:
 # Prepare data structures for the charts
 ip_submissions = defaultdict(int)
 ip_scores = defaultdict(float)
+hourly_counts = defaultdict(lambda: 0)
 
 # Process the logs
 for log in logs:
     ip = log['sentIP']
     trigger = log.get('notsentTrigger', 'Unknown')
-    timestamp = log.get('sentTimestamp', None)
+    timestamp = log.get('notsentTimestamp', None)
     api_response = log.get('apiResponse', None)
 
     if api_response:
@@ -30,6 +31,12 @@ for log in logs:
             ip_submissions[ip] += 1
         except KeyError:
             pass
+
+    # update hourly_counts
+    if timestamp:
+        timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+        hour = timestamp.replace(minute=0, second=0, microsecond=0)
+        hourly_counts[hour] += 1
 
 # Generate chart 1
 top_ips = sorted(ip_scores.items(), key=lambda x: x[1], reverse=True)[:10]
@@ -51,19 +58,43 @@ now = datetime.now()
 # Calculate the time 24 hours ago
 last_24_hours = now - timedelta(hours=24)
 
-# Filter out the logs older than 24 hours
-recent_logs = [log for log in logs if log.get('apiResponse', {}).get('data', {}).get('abuseConfidenceScore', None) is not None and 'sentTimestamp' in log and datetime.strptime(log['sentTimestamp'], '%Y-%m-%dT%H:%M:%S.%fZ') >= last_24_hours]
+# Filter out the logs older than 24 hours and ensure both 'abuseConfidenceScore' and 'notsentTimestamp' are present
+print(f"Total logs: {len(logs)}")
+recent_logs = [
+    log for log in logs
+    if log.get('apiResponse', {}).get('data', {}).get('abuseConfidenceScore', None) is not None
+    and 'notsentTimestamp' in log
+    and datetime.strptime(log['notsentTimestamp'], '%Y-%m-%d %H:%M:%S') >= last_24_hours
+]
 
 # Aggregate hourly submissions
 hourly_counts = defaultdict(lambda: defaultdict(int))
+print(f"Logs within the last 24 hours: {len(recent_logs)}")
 
 for log in recent_logs:
     ip = log['sentIP']
-    timestamp = datetime.strptime(log['sentTimestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+    timestamp = datetime.strptime(log['notsentTimestamp'], '%Y-%m-%d %H:%M:%S')
     current_hour = timestamp.replace(minute=0, second=0, microsecond=0)
 
     trigger = log.get('notsentTrigger', 'Unknown')
     confidence_score = log.get('apiResponse', {}).get('data', {}).get('abuseConfidenceScore', 0)
+
+    if confidence_score > 0:
+        hourly_counts[current_hour]['total'] += 1
+        hourly_counts[current_hour][trigger] += 1
+
+print(f"Hourly counts: {hourly_counts}")
+
+for log in recent_logs:
+    ip = log['sentIP']
+    timestamp = datetime.strptime(log['notsentTimestamp'], '%Y-%m-%d %H:%M:%S')
+    current_hour = timestamp.replace(minute=0, second=0, microsecond=0)
+
+    trigger = log.get('notsentTrigger', 'Unknown')
+    confidence_score = log.get('apiResponse', {}).get('data', {}).get('abuseConfidenceScore', 0)
+
+    # print(f"Processing log: {log}")
+    # print(f"Current hour: {current_hour}, Trigger: {trigger}, Confidence score: {confidence_score}")
 
     if confidence_score > 0:
         hourly_counts[current_hour]['total'] += 1
