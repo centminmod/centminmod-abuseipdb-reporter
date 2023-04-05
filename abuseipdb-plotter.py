@@ -83,7 +83,7 @@ for log in recent_logs:
     confidence_score = log.get('apiResponse', {}).get('data', {}).get('abuseConfidenceScore', 0)
 
     # Debugging: Print confidence_score and current_hour
-    print(f"Confidence Score: {confidence_score}, Current Hour: {current_hour}")
+    # print(f"Confidence Score: {confidence_score}, Current Hour: {current_hour}")
 
     if confidence_score > 0:
         hourly_counts[current_hour] += 1
@@ -118,18 +118,46 @@ with open('chart2_data.json', 'r') as f:
     chart2_data = json.load(f)
 
 # Create the HTML file with two chart containers and the Plotly.js library from a CDN
-html_template = '''
+html_template = r'''
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Charts</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .chart-container {{
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 1400px;
+        }}
+        .chart-container > div {{
+            width: 100%;
+            margin: 10px;
+        }}
+        @media only screen and (max-width: 768px) {{
+            .chart-container {{
+                max-width: 640px;
+            }}
+            .chart-container > div {{
+                width: 50%;
+            }}
+        }}
+    </style>
 </head>
 <body>
-    <div id="chart1"></div>
-    <div id="chart2"></div>
+    <div class="chart-container">
+        <div id="chart1"></div>
+        <div id="chart2"></div>
+    </div>
     <script>
         Plotly.react('chart1', {0});
         Plotly.react('chart2', {1});
