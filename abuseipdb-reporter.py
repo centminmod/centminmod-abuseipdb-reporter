@@ -43,9 +43,10 @@ import configparser
 import os
 import atexit
 import time
+import datetime
 from urllib.parse import quote
 
-VERSION = "0.2.7"
+VERSION = "0.2.8"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -418,6 +419,7 @@ if DEBUG:
             f.write("--------\n")
         print("DEBUG MODE: No actual report sent. Data saved to '{}'.".format(args.log_file))
 else:
+    current_timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     # Load and clean the cache
     cache = load_cache()
     cache = clean_cache(cache)
@@ -430,7 +432,6 @@ else:
             decodedResponse = json.loads(response.text)
 
             if LOG_API_REQUEST:
-                # ... (rest of the LOG_API_REQUEST code)
                 log_data = {
                     "sentVersion": VERSION,
                     "sentURL": url,
@@ -440,7 +441,8 @@ else:
                     "sentCategories": categories,
                     "sentComment": masked_comment,
                     "notsentTrigger": trigger,
-                    "apiResponse": decodedResponse
+                    "apiResponse": decodedResponse,
+                    "notsentTimestamp": current_timestamp
                 }
         
                 if JSON_APILOG_FORMAT:
@@ -468,6 +470,7 @@ else:
                         f.write("Categories: {}\n".format(categories))
                         f.write("Comment: {}\n".format(masked_comment))
                         f.write("API Response: {}\n".format(json.dumps(decodedResponse, indent=2)))
+                        f.write("Timestamp: {}\n".format(current_timestamp))
                         f.write("############################################################################\n")
                         f.write("--------\n")
 

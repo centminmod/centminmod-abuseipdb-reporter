@@ -650,6 +650,43 @@ When submission goes through from `DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb
 }
 ```
 
+Version `0.2.8` adds a `notsentTimestamp` for local log records. This allows further processing or query of JSON logs - including creating charts.
+
+```json
+{
+  "sentVersion": "0.2.8",
+  "sentURL": "https://api.abuseipdb.com/api/v2/report",
+  "sentHeaders": {
+    "Accept": "application/json",
+    "Key": "MYKEY"
+  },
+  "sentIP": "103.xxx.xxx.xxx",
+  "sentIPencoded": "103.xxx.xxx.xxx",
+  "sentCategories": "4",
+  "sentComment": "103.xxx.xxx.xxx (ID/Indonesia/ip23.39.31.103.in-addr.arpa.unknwn.cloudhost.asia), 5 distributed sshd attacks on account [REDACTED] in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_DISTATTACK; Logs: Apr  5 11:04:35 sshd[754533]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=156.232.12.156  user=[USERNAME]",
+  "notsentTrigger": "LF_DISTATTACK",
+  "apiResponse": {
+    "data": {
+      "ipAddress": "103.xxx.xxx.xxx",
+      "abuseConfidenceScore": 100
+    }
+  },
+  "notsentTimestamp": "2023-04-05 11:05:24"
+}
+```
+
+You can parse the JSON log for `notsentTimestamp` key using to return API submissions from `2023-04-05`:
+
+```bash
+cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[] | select(has("notsentTimestamp") and (.notsentTimestamp | startswith("2023-04-05")))' | jq -r
+```
+
+Filter JSON log for `notsentTimestamp` key using to return API submissions from `2023-04-05` and where `sentComment` contains references to `LF_DISTATTACK`:
+
+```bash
+cat /var/log/abuseipdb-reporter-api-json.log | jq -c '.[] | select(has("notsentTimestamp") and (.notsentTimestamp | startswith("2023-04-05"))) | select(.sentComment | contains("LF_DISTATTACK"))'
+```
+
 ### JSON Log Submission Parsing
 
 Advantages of using JSON logged submissions is you can parse and query your `DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'` defined JSON log as you you would like when `JSON_LOG_FORMAT = True` is set.
