@@ -59,14 +59,20 @@ last_24_hours = now - timedelta(hours=24)
 print(f"Total logs: {len(logs)}")
 recent_logs = [
     log for log in logs
-    if log.get('apiResponse', {}).get('data', {}).get('abuseConfidenceScore', None) is not None
-    and 'notsentTimestamp' in log
+    if log.get('apiResponse', {}).get('data', {}).get('abuseConfidenceScore') is not None
+    and log.get('notsentTimestamp') is not None
     and datetime.strptime(log['notsentTimestamp'], '%Y-%m-%d %H:%M:%S') >= last_24_hours
 ]
 
 # Aggregate hourly submissions
 hourly_counts = defaultdict(int)
 print(f"Logs within the last 24 hours: {len(recent_logs)}")
+
+# Define hourly_timestamps here
+hourly_timestamps = []
+for i in range(24):
+    hour = last_24_hours + timedelta(hours=i)
+    hourly_timestamps.append(hour)
 
 for log in recent_logs:
     ip = log['sentIP']
@@ -76,15 +82,16 @@ for log in recent_logs:
     trigger = log.get('notsentTrigger', 'Unknown')
     confidence_score = log.get('apiResponse', {}).get('data', {}).get('abuseConfidenceScore', 0)
 
+    # Debugging: Print confidence_score and current_hour
+    print(f"Confidence Score: {confidence_score}, Current Hour: {current_hour}")
+
     if confidence_score > 0:
         hourly_counts[current_hour] += 1
 print(f"Hourly counts: {hourly_counts}")
 
-hourly_timestamps = []
 hourly_submission_counts = []
 for i in range(24):
     hour = last_24_hours + timedelta(hours=i)
-    hourly_timestamps.append(hour)
     hourly_submission_counts.append(hourly_counts.get(hour, 0))
 fig2 = go.Figure(go.Bar(x=hourly_timestamps, y=hourly_submission_counts))
 fig2.update_layout(
@@ -128,8 +135,8 @@ html_template = '''
         Plotly.react('chart2', {1});
         Plotly.update('chart2', {{
             'xaxis': {{
-                'tickvals': [{2}],
-                'ticktext': [{3}],
+                'tickvals': {2},
+                'ticktext': {3},
                 'tickangle': 45
             }}
         }});
@@ -137,6 +144,8 @@ html_template = '''
 </body>
 </html>
 '''
-# create charts.html
+
+# Create charts.html
+hourly_timestamps_str = [hour.isoformat() for hour in hourly_timestamps]
 with open('charts.html', 'w') as f:
-    f.write(html_template.format(to_json(fig1), to_json(fig2), str(hourly_timestamps), str(hourly_submission_counts)))
+    f.write(html_template.format(to_json(fig1), to_json(fig2), hourly_timestamps_str, hourly_timestamps_str))
