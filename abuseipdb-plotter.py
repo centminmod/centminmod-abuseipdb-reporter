@@ -68,7 +68,7 @@ recent_logs = [
 ]
 
 # Aggregate hourly submissions
-hourly_counts = defaultdict(lambda: defaultdict(int))
+hourly_counts = defaultdict(int)
 print(f"Logs within the last 24 hours: {len(recent_logs)}")
 
 for log in recent_logs:
@@ -80,45 +80,23 @@ for log in recent_logs:
     confidence_score = log.get('apiResponse', {}).get('data', {}).get('abuseConfidenceScore', 0)
 
     if confidence_score > 0:
-        hourly_counts[current_hour]['total'] += 1
-        hourly_counts[current_hour][trigger] += 1
+        hourly_counts[current_hour] += 1
 
 print(f"Hourly counts: {hourly_counts}")
 
-for log in recent_logs:
-    ip = log['sentIP']
-    timestamp = datetime.strptime(log['notsentTimestamp'], '%Y-%m-%d %H:%M:%S')
-    current_hour = timestamp.replace(minute=0, second=0, microsecond=0)
+hourly_timestamps = []
+hourly_submission_counts = []
 
-    trigger = log.get('notsentTrigger', 'Unknown')
-    confidence_score = log.get('apiResponse', {}).get('data', {}).get('abuseConfidenceScore', 0)
+for i in range(24):
+    hour = last_24_hours + timedelta(hours=i)
+    hourly_timestamps.append(hour)
+    hourly_submission_counts.append(hourly_counts.get(hour, 0))
 
-    # print(f"Processing log: {log}")
-    # print(f"Current hour: {current_hour}, Trigger: {trigger}, Confidence score: {confidence_score}")
-
-    if confidence_score > 0:
-        hourly_counts[current_hour]['total'] += 1
-        hourly_counts[current_hour][trigger] += 1
-
-hourly_timestamps = [last_24_hours + timedelta(hours=i) for i in range(24)]
-hourly_stacked_counts = []
-
-for trigger in set(t for hour in hourly_counts.values() for t in hour.keys()):
-    counts = [hourly_counts[hour].get(trigger, 0) for hour in hourly_timestamps]
-    hourly_stacked_counts.append(go.Bar(x=hourly_timestamps, y=counts, name=trigger))
-
-xaxis_tickvals = hourly_timestamps
-xaxis_ticktext = [hour.strftime('%Y-%m-%d %H:%M:%S') for hour in hourly_timestamps]
-
-fig2 = go.Figure(data=hourly_stacked_counts)
+fig2 = go.Figure(go.Bar(x=hourly_timestamps, y=hourly_submission_counts))
 fig2.update_layout(
     title='Hourly Total IP Submissions with Abuse Confidence Scores in the Last 24 Hours',
     xaxis_title='Hour',
-    yaxis_title='Submission Count',
-    barmode='stack',
-    xaxis_range=[last_24_hours, now],
-    xaxis_tickvals=xaxis_tickvals,
-    xaxis_ticktext=xaxis_ticktext
+    yaxis_title='Submission Count'
 )
 
 # Save chart 1 JSON data to a file
@@ -154,10 +132,18 @@ html_template = '''
     <script>
         Plotly.react('chart1', {0});
         Plotly.react('chart2', {1});
+        Plotly.update('chart2', {{
+            'xaxis': {{
+                'tickvals': [{2}],
+                'ticktext': [{3}],
+                'tickangle': 45
+            }}
+        }});
     </script>
 </body>
 </html>
 '''
 
+# Update the last line of the script as follows
 with open('charts.html', 'w') as f:
-    f.write(html_template.format(to_json(fig1), to_json(fig2)))
+    f.write(html_template.format(to_json(fig1), to_json(fig2), str(hourly_timestamps), str(hourly_submission_counts)))
