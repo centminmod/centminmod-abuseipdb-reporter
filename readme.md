@@ -980,6 +980,7 @@ The script performs the following actions:
    - `socket`, `re`, `subprocess`: Built-in modules for processing and extracting information from log data. `socket` is used for network-related operations, `re` for regular expressions and pattern matching, and `subprocess` for running external commands.
    - `configparser`, `os`, `atexit`: Built-in modules for reading and writing configuration files and handling file paths. `configparser` simplifies reading and writing INI-style configuration files, `os` provides a cross-platform interface for file and directory operations, and `atexit` allows the script to register cleanup functions that will be executed when the script exits.
    - `time`: A built-in module for handling various time-related tasks, such as pausing the script execution and measuring elapsed time.
+   - `datetime`: A Python datetime module, which provides classes for working with dates and times in Python.
    - `urllib.parse.quote`: A function from the `urllib.parse` module, which is used for URL encoding.
 
 
@@ -1034,6 +1035,8 @@ By sending the report to the AbuseIPDB API, the script effectively shares inform
    - `sentIPencoded`: The URL-encoded IP address (`url_encoded_ip`) included in the API request.
    - `sentCategories`: The AbuseIPDB categories (`categories`) associated with the log entry, indicating the type of abuse.
    - `sentComment`: The masked comment (`masked_comment`) extracted from the log entry's message, providing additional context for the reported activity.
+   - `notsentTrigger`: For local records only. Contains value of LFD trigger `LF_SSHD`, `LF_DISTATTACK`, `LF_SMTPAUTH`, `LF_DISTFTP`, `LF_FTPD`, `LF_MODSEC`, `PS_LIMIT`, and `LF_DISTSMTP`. Allows for local JSON parsing to match on trigger events.
+   - `notsentTimestamp`: For local records only. Contains the timestamp for API submission.  Allows for local JSON parsing to match on timestamp for events and any additional processing of JSON logs i.e. charting metrics and time series charts.
 
 The script then checks the status code (`response.status_code`) of the API response to determine the outcome of the request:
    - `200`: Successful report submission. The script prints the decoded response's data field (`decodedResponse['data']`) to the console, showing the details of the submitted report.
