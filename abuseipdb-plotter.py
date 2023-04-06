@@ -7,6 +7,8 @@ import plotly.io as pio
 from plotly.io import to_json
 from datetime import datetime, timedelta
 
+VERSION = "0.0.2"
+
 # Load the JSON data from the log file
 with open('/var/log/abuseipdb-reporter-api-json.log', 'r') as f:
     logs = json.load(f)
@@ -14,7 +16,7 @@ with open('/var/log/abuseipdb-reporter-api-json.log', 'r') as f:
 # Prepare data structures for the charts
 ip_submissions = defaultdict(int)
 ip_scores = defaultdict(float)
-hourly_counts = defaultdict(lambda: 0)
+hourly_counts = defaultdict(lambda: defaultdict(int))
 
 # Process the logs
 for log in logs:
@@ -33,7 +35,7 @@ for log in logs:
     if timestamp:
         timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
         hour = timestamp.replace(minute=0, second=0, microsecond=0)
-        hourly_counts[hour] += 1
+        hourly_counts[hour][trigger] += 1
 
 # Generate chart 1
 top_ips = sorted(ip_scores.items(), key=lambda x: x[1], reverse=True)[:10]
@@ -61,12 +63,14 @@ recent_logs = [
     log for log in logs
     if log.get('apiResponse', {}).get('data', {}).get('abuseConfidenceScore') is not None
     and log.get('notsentTimestamp') is not None
-    and datetime.strptime(log['notsentTimestamp'], '%Y-%m-%d %H:%M:%S') >= last_24_hours
+    and datetime.strptime(log['notsentTimestamp'], '%Y-%m-%d %H:%M:%S') > last_24_hours
 ]
+print(f"Logs within last 24 hours: {len(recent_logs)}")
 
-# Aggregate hourly submissions
+# Aggregate hourly submissions and triggers
 hourly_submission_counts = defaultdict(int)
-print(f"Logs within the last 24 hours: {len(recent_logs)}")
+hourly_triggers = defaultdict(lambda: defaultdict(int))
+
 for log in recent_logs:
     ip = log['sentIP']
     timestamp = datetime.strptime(log['notsentTimestamp'], '%Y-%m-%d %H:%M:%S')
@@ -75,24 +79,40 @@ for log in recent_logs:
     trigger = log.get('notsentTrigger', 'Unknown')
     confidence_score = log.get('apiResponse', {}).get('data', {}).get('abuseConfidenceScore', 0)
 
-    # Debugging: Print confidence_score and current_hour
-    # print(f"Confidence Score: {confidence_score}, Current Hour: {current_hour}")
-
     if confidence_score > 0:
         hourly_submission_counts[current_hour] += 1
-print(f"Hourly counts: {hourly_submission_counts}")
+        hourly_triggers[current_hour][trigger] += 1
 
-hourly_timestamps = [last_24_hours + timedelta(hours=i) for i in range(24)]
-hourly_submission_counts_lst = []
-for i in range(24):
-    hour = last_24_hours + timedelta(hours=i)
-    hourly_submission_counts_lst.append(hourly_submission_counts.get(hour.replace(minute=0, second=0, microsecond=0), 0))
+print("Hourly counts with breakdown of trigger counts:")
+for hour in hourly_counts:
+    triggers = hourly_triggers[hour]
+    trigger_breakdown = ', '.join([f"{trigger}: {count}" for trigger, count in triggers.items()])
+    total_count = sum(triggers.values())
+    print(f"{hour}: {total_count} ({trigger_breakdown})")
 
-fig2 = go.Figure(go.Bar(x=hourly_timestamps, y=hourly_submission_counts_lst))
+# Create a list of unique triggers
+unique_triggers = sorted({trigger for hour, triggers in hourly_triggers.items() for trigger in triggers})
+
+# Prepare the data for the stacked bar chart
+hourly_timestamps = [hour for hour in hourly_counts.keys() if hour in hourly_triggers]
+hourly_trigger_counts = {trigger: [hourly_triggers[hour][trigger] for hour in hourly_timestamps] for trigger in unique_triggers}
+
+# Generate the stacked bar chart
+fig2 = go.Figure()
+
+for trigger in unique_triggers:
+    hover_text = []
+    for i, hour in enumerate(hourly_timestamps):
+        count = hourly_trigger_counts[trigger][i]
+        total_count = hourly_submission_counts[hour]
+        hover_text.append(f"{hour}: {count}<br>Total: {total_count}")
+    fig2.add_trace(go.Bar(x=hourly_timestamps, y=hourly_trigger_counts[trigger], name=trigger, hovertext=hover_text))
+
 fig2.update_layout(
     title='Hourly Total IP Submissions with Abuse Confidence Scores in the Last 24 Hours',
     xaxis_title='Hour',
-    yaxis_title='Submission Count'
+    yaxis_title='Submission Count',
+    barmode='stack'
 )
 
 # Save chart 1 JSON data to a file

@@ -983,20 +983,38 @@ API_KEY = YOUR_API_KEY
 
 When you run the script, it will parse the `abuseipdb-reporter.py` generated `DEFAULT_JSONAPILOG_FILE = /var/log/abuseipdb-reporter-api-json.log` JSON log entries to create a `charts.html` HTML file which has 2 charts. One chart for top 10 IP address submissions to AbuseIPDB and second chart for last 24hrs of hourly aggregate IP submissions to AbuseIPDB.
 
-Example output shows there were 246 log entries from `abuseipdb-reporter.py` generated `DEFAULT_JSONAPILOG_FILE = /var/log/abuseipdb-reporter-api-json.log` JSON log of which 23 entries met the criteria of having a the `notsentTimestamp` entry and `abuseConfidenceScore` score. Having both criteria means a successful API submission occured. The `Hourly counts:` lists each hours' aggregate count for IP address API submissions.
+Example output shows there were 276 log entries from `abuseipdb-reporter.py` generated `DEFAULT_JSONAPILOG_FILE = /var/log/abuseipdb-reporter-api-json.log` JSON log of which 35 entries met the criteria of having a the `notsentTimestamp` entry and `abuseConfidenceScore` score. Having both criteria means a successful API submission occured. The `Hourly counts:` lists each hours' aggregate count for IP address API submissions and their individual breakdown by CSF Firewall trigger classification.
 
 ```bash
 ./abuseipdb-plotter.py 
-Total logs: 246
-Logs within the last 24 hours: 23
-Hourly counts: defaultdict(<class 'int'>, {datetime.datetime(2023, 4, 5, 11, 0): 7, datetime.datetime(2023, 4, 5, 12, 0): 1, datetime.datetime(2023, 4, 5, 15, 0): 5, datetime.datetime(2023, 4, 5, 16, 0): 6, datetime.datetime(2023, 4, 5, 18, 0): 3, datetime.datetime(2023, 4, 5, 19, 0): 1})
+Total logs: 276
+Logs within last 24 hours: 35
+Hourly counts with breakdown of trigger counts:
+2023-04-05 11:00:00: 0 ()
+2023-04-05 12:00:00: 0 ()
+2023-04-05 15:00:00: 0 ()
+2023-04-05 16:00:00: 1 (LF_SSHD: 1)
+2023-04-05 18:00:00: 3 (LF_DISTATTACK: 2, LF_SSHD: 1)
+2023-04-05 19:00:00: 1 (LF_DISTATTACK: 1)
+2023-04-05 20:00:00: 1 (LF_SSHD: 1)
+2023-04-05 21:00:00: 1 (LF_SSHD: 1)
+2023-04-05 22:00:00: 1 (LF_DISTATTACK: 1)
+2023-04-06 00:00:00: 1 (LF_SSHD: 1)
+2023-04-06 02:00:00: 4 (LF_SSHD: 2, LF_DISTATTACK: 2)
+2023-04-06 06:00:00: 2 (LF_SSHD: 2)
+2023-04-06 08:00:00: 2 (LF_SSHD: 2)
+2023-04-06 10:00:00: 7 (LF_SSHD: 1, LF_DISTATTACK: 6)
+2023-04-06 11:00:00: 4 (LF_DISTATTACK: 2, LF_SSHD: 2)
+2023-04-06 12:00:00: 3 (LF_DISTATTACK: 2, LF_SSHD: 1)
+2023-04-06 14:00:00: 3 (LF_DISTATTACK: 1, LF_SSHD: 2)
+2023-04-06 16:00:00: 1 (LF_SSHD: 1)
 ```
 
 ### AbuseIPDB Charts
 
 `abuseipdb-plotter.py` example `charts.html` created charts
 
-![AbuseIPDB Charts](screenshots/abuseipdb-plotter-charts-01.png "AbuseIPDB Charts")
+![AbuseIPDB Charts](screenshots/abuseipdb-plotter-charts-02.png "AbuseIPDB Charts")
 
 # Credits
 
