@@ -969,7 +969,13 @@ Look up IP address `-ip 121.135.74.65` and return individual user reports for th
 
 ## abuseipdb-plotter.py
 
-`abuseipdb-plotter.py` uses Plotly to plot charts in a `charts.html` HTML file when `abuseipdb-reporter.ini` settings config are set to enable API submissions to AbuseIPDB with JSON logging enabled `JSON_APILOG_FORMAT = True` and reads from the logged API submissions in `DEFAULT_JSONAPILOG_FILE = /var/log/abuseipdb-reporter-api-json.log` JSON log to generate the charts plot data.
+`abuseipdb-plotter.py` uses Plotly to plot charts in a `charts.html` HTML file. You'll need to install ploty first.
+
+```
+pip3 install plotly
+```
+
+When `abuseipdb-reporter.ini` settings config are set to enable API submissions to AbuseIPDB with JSON logging enabled `JSON_APILOG_FORMAT = True` and reads from the logged API submissions in `DEFAULT_JSONAPILOG_FILE = /var/log/abuseipdb-reporter-api-json.log` JSON log to generate the charts plot data.
 
 ```
 [settings]
