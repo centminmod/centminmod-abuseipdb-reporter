@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.2.9"
+VERSION = "0.3.0"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -148,6 +148,7 @@ if config.has_option('settings', 'CACHE_FILE'):
 
 if config.has_option('settings', 'CACHE_DURATION'):
     CACHE_DURATION = config.get('settings', 'CACHE_DURATION')
+    CACHE_DURATION = float(CACHE_DURATION)
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='AbuseIPDB reporter script.')
@@ -191,8 +192,10 @@ def load_cache():
     if os.path.isfile(CACHE_FILE):
         with open(CACHE_FILE, 'r') as f:
             data = json.load(f)
+            print("Loaded cache data before conversion:", data)
             # Convert timestamp values to float
             data = {ip: float(timestamp) for ip, timestamp in data.items()}
+            print("Loaded cache data after conversion:", data)
         return data
     else:
         return {}
