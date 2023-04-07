@@ -7,7 +7,7 @@ import plotly.io as pio
 from plotly.io import to_json
 from datetime import datetime, timedelta
 
-VERSION = "0.0.2"
+VERSION = "0.0.3"
 
 # Load the JSON data from the log file
 with open('/var/log/abuseipdb-reporter-api-json.log', 'r') as f:
@@ -83,19 +83,21 @@ for log in recent_logs:
         hourly_submission_counts[current_hour] += 1
         hourly_triggers[current_hour][trigger] += 1
 
-print("Hourly counts with breakdown of trigger counts:")
+print("Hourly counts with breakdown of trigger counts (last 24 hours):")
 for hour in hourly_counts:
-    triggers = hourly_triggers[hour]
-    trigger_breakdown = ', '.join([f"{trigger}: {count}" for trigger, count in triggers.items()])
-    total_count = sum(triggers.values())
-    print(f"{hour}: {total_count} ({trigger_breakdown})")
+    if hour > last_24_hours:
+        triggers = hourly_triggers[hour]
+        trigger_breakdown = ', '.join([f"{trigger}: {count}" for trigger, count in triggers.items()])
+        total_count = sum(triggers.values())
+        print(f"{hour}: {total_count} ({trigger_breakdown})")
 
 # Create a list of unique triggers
 unique_triggers = sorted({trigger for hour, triggers in hourly_triggers.items() for trigger in triggers})
 
 # Prepare the data for the stacked bar chart
-hourly_timestamps = [hour for hour in hourly_counts.keys() if hour in hourly_triggers]
-hourly_trigger_counts = {trigger: [hourly_triggers[hour][trigger] for hour in hourly_timestamps] for trigger in unique_triggers}
+start_hour = now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=24)
+hourly_timestamps = [start_hour + timedelta(hours=i) for i in range(25)]
+hourly_trigger_counts = {trigger: [hourly_triggers[hour].get(trigger, 0) for hour in hourly_timestamps] for trigger in unique_triggers}
 
 # Generate the stacked bar chart
 fig2 = go.Figure()
