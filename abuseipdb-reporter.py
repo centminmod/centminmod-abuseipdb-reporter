@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.2.8"
+VERSION = "0.2.9"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -188,14 +188,14 @@ print("Logs:", logs)
 print("Trigger:", trigger)
 
 def load_cache():
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE, "r") as f:
-            cache = json.load(f)
+    if os.path.isfile(CACHE_FILE):
+        with open(CACHE_FILE, 'r') as f:
+            data = json.load(f)
+            # Convert timestamp values to float
+            data = {ip: float(timestamp) for ip, timestamp in data.items()}
+        return data
     else:
-        cache = {}
-    
-    print("Loaded cache:", cache)
-    return cache
+        return {}
 
 def save_cache(cache):
     with open(CACHE_FILE, "w") as f:
@@ -422,6 +422,7 @@ else:
     current_timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     # Load and clean the cache
     cache = load_cache()
+    print("Loaded cache:", cache)
     cache = clean_cache(cache)
     print("Current cache:", cache)
 
