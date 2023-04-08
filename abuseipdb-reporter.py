@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -80,6 +80,7 @@ CACHE_DURATION = 900
 # single quotes
 USERNAME_REPLACEMENT = '[USERNAME]'
 ACCOUNT_REPLACEMENT = '[REDACTED]'
+EMAIL_REPLACEMENT = '[EMAIL]'
 
 # Set privacy masks
 hostname = socket.gethostname()
@@ -143,6 +144,9 @@ if config.has_option('settings', 'USERNAME_REPLACEMENT'):
 if config.has_option('settings', 'ACCOUNT_REPLACEMENT'):
     ACCOUNT_REPLACEMENT = config.get('settings', 'ACCOUNT_REPLACEMENT')
 
+if config.has_option('settings', 'EMAIL_REPLACEMENT'):
+    EMAIL_REPLACEMENT = config.get('settings', 'EMAIL_REPLACEMENT')
+
 if config.has_option('settings', 'CACHE_FILE'):
     CACHE_FILE = config.get('settings', 'CACHE_FILE')
 
@@ -182,11 +186,11 @@ message = args.arguments[5]
 logs = args.arguments[6]
 trigger = args.arguments[7]
 
-print("Ports:", ports)
-print("In/Out:", inOut)
-print("Message:", message)
-print("Logs:", logs)
-print("Trigger:", trigger)
+print("Received Ports:", ports)
+print("Received In/Out:", inOut)
+print("Received Message:", message)
+print("Received Logs:", logs)
+print("Received Trigger:", trigger, '\n')
 
 def load_cache():
     if os.path.isfile(CACHE_FILE):
@@ -293,6 +297,13 @@ any_username_pattern = r'((?:\buser=|Failed password for (?:invalid user )?|Inva
 # Replace the matched text in the masked_logs variable with "user [USERNAME]"
 masked_logs = re.sub(any_username_pattern, r'\1{}'.format(USERNAME_REPLACEMENT), masked_logs)
 
+# regex pattern for email address username matches
+email_pattern = r'user=<([^>]+)>'
+# Replace the email addresses with the specified replacement text
+masked_logs = re.sub(email_pattern, r'user=<{}>'.format(EMAIL_REPLACEMENT), logs)
+# Print the modified log for debugging
+# print('Modified log:', masked_logs)
+
 # Extract the destination IP from the log message and apply the change only if the trigger is 'PS_LIMIT'
 if trigger == 'PS_LIMIT':
     dst_ip_match = re.search(r'DST=(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})', logs)
@@ -346,6 +357,10 @@ elif 'PS_LIMIT' in trigger:
     categories = '14'
 elif 'LF_DISTSMTP' in trigger:
     categories = '18'
+elif 'CT_LIMIT' in trigger:
+    categories = '14'
+elif 'LF_DIRECTADMIN' in trigger:
+    categories = '21'
 
 url_encoded_ip = quote(args.arguments[0])
 
@@ -423,12 +438,16 @@ if DEBUG:
         print("DEBUG MODE: No actual report sent. Data saved to '{}'.".format(args.log_file))
 else:
     current_timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print("Sending Ports:", ports)
+    print("Sending In/Out:", inOut)
+    print("Sending Message:", masked_message)
+    print("Sending Logs:", masked_logs)
+    print("Sending Trigger:", trigger, '\n')
     # Load and clean the cache
     cache = load_cache()
     print("Loaded cache:", cache)
     cache = clean_cache(cache)
     print("Current cache:", cache)
-
     if not (IGNORE_CLUSTER_SUBMISSIONS and contains_cluster_member_pattern(message)):
         # Check if the IP address is in the cache before sending the report
         if not ip_in_cache(args.arguments[0], cache):
