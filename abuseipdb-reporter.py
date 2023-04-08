@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.3.1"
+VERSION = "0.3.2"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -358,7 +358,7 @@ elif 'PS_LIMIT' in trigger:
 elif 'LF_DISTSMTP' in trigger:
     categories = '18'
 elif 'CT_LIMIT' in trigger:
-    categories = '14'
+    categories = '4'
 elif 'LF_DIRECTADMIN' in trigger:
     categories = '21'
 
