@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.3.2"
+VERSION = "0.3.3"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -80,7 +80,7 @@ CACHE_DURATION = 900
 # single quotes
 USERNAME_REPLACEMENT = '[USERNAME]'
 ACCOUNT_REPLACEMENT = '[REDACTED]'
-EMAIL_REPLACEMENT = '[EMAIL]'
+EMAIL_REPLACEMENT = 'EMAIL'
 
 # Set privacy masks
 hostname = socket.gethostname()
@@ -276,6 +276,28 @@ else:
     print("Error: Invalid LOG_MODE. Supported modes: 'full' or 'compact'.")
     sys.exit(1)
 
+# Create a regex pattern to match hostnames without a domain
+short_hostname_pattern = r'\b(?:{}|{}|{})\b'.format(socket.gethostname(), socket.getfqdn().split('.')[0], short_hostname)
+# Replace the matched hostnames in the filtered_logs variable with the masked hostname
+filtered_logs = re.sub(short_hostname_pattern, mask_hostname, filtered_logs)
+
+# Get the first part of the hostname before a single dot
+first_part_hostname = socket.gethostname().split('.')[0]
+# Create a regex pattern to match the first part of hostnames with a single dot
+first_part_hostname_pattern = r'\b({})\b'.format(first_part_hostname)
+# Replace the matched first part of the hostname in the filtered_logs variable with the masked hostname
+filtered_logs = re.sub(first_part_hostname_pattern, mask_hostname, filtered_logs)
+
+# Create a regex pattern to match the timestamp and the hostname
+timestamp_and_hostname_pattern = r'((?:\b\w{{3}}\s+\d{{1,2}}\s+\d{{2}}:\d{{2}}:\d{{2}}\s+))(?:{}|{}|{}|{})\b'.format(socket.gethostname(), socket.getfqdn().split('.')[0], short_hostname, first_part_hostname)
+# Replace the timestamp and matched hostnames in the filtered_logs variable with the timestamp and the masked hostname
+filtered_logs = re.sub(timestamp_and_hostname_pattern, r'\1{}'.format(mask_hostname), filtered_logs)
+
+# Create a regex pattern to match any instances of MASKED_HOSTNAME
+masked_hostname_pattern = r'\b({})\b'.format(mask_hostname)
+# Remove any instances of MASKED_HOSTNAME in the filtered_logs variable
+filtered_logs = re.sub(masked_hostname_pattern, '', filtered_logs)
+
 # Create a regex pattern to match any content within the square brackets, preceded by the word "user"
 username_pattern = r'(\buser )\[(.*?)\]'
 # Replace the matched text in the filtered_logs variable with "user [USERNAME]"
@@ -293,14 +315,14 @@ for ip in public_ips:
     masked_logs = masked_logs.replace(ip, mask_ip)
 
 # Create a regex pattern to match the desired text for any username
-any_username_pattern = r'((?:\buser=|Failed password for (?:invalid user )?|Invalid user ))(\w+)'
+any_username_pattern = r'((?:\buser=|Failed password for (?:invalid user )?|Invalid user ))(\S+)'
 # Replace the matched text in the masked_logs variable with "user [USERNAME]"
 masked_logs = re.sub(any_username_pattern, r'\1{}'.format(USERNAME_REPLACEMENT), masked_logs)
 
 # regex pattern for email address username matches
 email_pattern = r'user=<([^>]+)>'
 # Replace the email addresses with the specified replacement text
-masked_logs = re.sub(email_pattern, r'user=<{}>'.format(EMAIL_REPLACEMENT), logs)
+masked_logs = re.sub(email_pattern, r'user=<{}>'.format(EMAIL_REPLACEMENT), masked_logs)
 # Print the modified log for debugging
 # print('Modified log:', masked_logs)
 
@@ -414,6 +436,11 @@ if DEBUG:
             with open(DEFAULT_JSONLOG_FILE, 'w') as f:
                 f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
 
+        print("Not Sent Ports:", ports)
+        print("Not Sent In/Out:", inOut)
+        print("Not Sent Message:", masked_message)
+        print("Not Sent Logs:", masked_logs)
+        print("Not Sent Trigger:", trigger, '\n')
         print("DEBUG MODE: No actual report sent. JSON data saved to '{}'.".format(DEFAULT_JSONLOG_FILE))
     else:
         with open(args.log_file, 'a') as f:
@@ -435,6 +462,11 @@ if DEBUG:
             f.write("Trigger: {}\n".format(trigger))
             f.write("############################################################################\n")
             f.write("--------\n")
+        print("Not Sent Ports:", ports)
+        print("Not Sent In/Out:", inOut)
+        print("Not Sent Message:", masked_message)
+        print("Not Sent Logs:", masked_logs)
+        print("Not Sent Trigger:", trigger, '\n')
         print("DEBUG MODE: No actual report sent. Data saved to '{}'.".format(args.log_file))
 else:
     current_timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
