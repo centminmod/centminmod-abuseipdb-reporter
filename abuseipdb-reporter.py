@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.3.4"
+VERSION = "0.3.5"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -350,8 +350,15 @@ masked_message = re.sub(username_pattern, r'\1{}'.format(USERNAME_REPLACEMENT), 
 # Replace the matched text in the masked_message variable with "account [REDACTED]"
 masked_message = re.sub(any_content_pattern, r'\1{}'.format(ACCOUNT_REPLACEMENT), masked_message)
 
-# Truncate masked_logs to no more than 250 characters
-masked_logs = masked_logs[:250]
+if LOG_MODE == 'full':
+    # Truncate masked_logs to no more than 250 characters
+    masked_logs = masked_logs[:500]
+elif LOG_MODE == 'compact':
+    # Truncate masked_logs to no more than 250 characters
+    masked_logs = masked_logs[:150]
+else:
+    # Truncate masked_logs to no more than 250 characters
+    masked_logs = masked_logs[:150]
 
 # Create the comment string
 comment = masked_message + "; Ports: " + ports + "; Direction: " + inOut + "; Trigger: " + trigger + "; Logs: " + masked_logs
