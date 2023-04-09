@@ -280,6 +280,7 @@ USERNAME_REPLACEMENT = [USERNAME]
 ACCOUNT_REPLACEMENT = [REDACTED]
 CACHE_FILE = ip_cache.json
 CACHE_DURATION = 900
+LF_DEFAULT_CATEGORY = '14'
 LF_SSHD_CATEGORY = '22'
 LF_DISTATTACK_CATEGORY = '4'
 LF_SMTPAUTH_CATEGORY = '18'
@@ -298,6 +299,7 @@ LF_CUSTOMTRIGGER_CATEGORY = '21'
 As you can see you can now as of version `0.3.6` override the [AbuseIPDB categories](https://www.abuseipdb.com/categories) as well in `abuseipdb-reporter.ini` file.
 
 ```
+LF_DEFAULT_CATEGORY = '14'
 LF_SSHD_CATEGORY = '22'
 LF_DISTATTACK_CATEGORY = '4'
 LF_SMTPAUTH_CATEGORY = '18'
