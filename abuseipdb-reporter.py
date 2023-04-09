@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.3.5"
+VERSION = "0.3.6"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -90,6 +90,20 @@ short_hostname = socket.gethostname()
 # Define dummy mask hostname and IP
 mask_hostname = "MASKED_HOSTNAME"
 mask_ip = "0.0.0.x"
+
+# default LFD trigger AbuseIPDB categories assigned
+# https://www.abuseipdb.com/categories
+LF_SSHD_CATEGORY = '22'
+LF_DISTATTACK_CATEGORY = '4'
+LF_SMTPAUTH_CATEGORY = '18'
+LF_DISTFTP_CATEGORY = '5'
+LF_FTPD_CATEGORY = '5'
+LF_MODSEC_CATEGORY = '21'
+PS_LIMIT_CATEGORY = '14'
+LF_DISTSMTP_CATEGORY = '18'
+CT_LIMIT_CATEGORY = '4'
+LF_DIRECTADMIN_CATEGORY = '21'
+LF_CUSTOMTRIGGER_CATEGORY = '21'
 
 # Get the absolute path of the script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -153,6 +167,39 @@ if config.has_option('settings', 'CACHE_FILE'):
 if config.has_option('settings', 'CACHE_DURATION'):
     CACHE_DURATION = config.get('settings', 'CACHE_DURATION')
     CACHE_DURATION = float(CACHE_DURATION)
+
+if config.has_option('settings', 'LF_SSHD_CATEGORY'):
+    LF_SSHD_CATEGORY = config.get('settings', 'LF_SSHD_CATEGORY')
+
+if config.has_option('settings', 'LF_DISTATTACK_CATEGORY'):
+    LF_DISTATTACK_CATEGORY = config.get('settings', 'LF_DISTATTACK_CATEGORY')
+
+if config.has_option('settings', 'LF_SMTPAUTH_CATEGORY'):
+    LF_SMTPAUTH_CATEGORY = config.get('settings', 'LF_SMTPAUTH_CATEGORY')
+
+if config.has_option('settings', 'LF_DISTFTP_CATEGORY'):
+    LF_DISTFTP_CATEGORY = config.get('settings', 'LF_DISTFTP_CATEGORY')
+
+if config.has_option('settings', 'LF_FTPD_CATEGORY'):
+    LF_FTPD_CATEGORY = config.get('settings', 'LF_FTPD_CATEGORY')
+
+if config.has_option('settings', 'LF_MODSEC_CATEGORY'):
+    LF_MODSEC_CATEGORY = config.get('settings', 'LF_MODSEC_CATEGORY')
+
+if config.has_option('settings', 'PS_LIMIT_CATEGORY'):
+    PS_LIMIT_CATEGORY = config.get('settings', 'PS_LIMIT_CATEGORY')
+
+if config.has_option('settings', 'LF_DISTSMTP_CATEGORY'):
+    LF_DISTSMTP_CATEGORY = config.get('settings', 'LF_DISTSMTP_CATEGORY')
+
+if config.has_option('settings', 'CT_LIMIT_CATEGORY'):
+    CT_LIMIT_CATEGORY = config.get('settings', 'CT_LIMIT_CATEGORY')
+
+if config.has_option('settings', 'LF_DIRECTADMIN_CATEGORY'):
+    LF_DIRECTADMIN_CATEGORY = config.get('settings', 'LF_DIRECTADMIN_CATEGORY')
+
+if config.has_option('settings', 'LF_CUSTOMTRIGGER_CATEGORY'):
+    LF_CUSTOMTRIGGER_CATEGORY = config.get('settings', 'LF_CUSTOMTRIGGER_CATEGORY')
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='AbuseIPDB reporter script.')
@@ -351,13 +398,13 @@ masked_message = re.sub(username_pattern, r'\1{}'.format(USERNAME_REPLACEMENT), 
 masked_message = re.sub(any_content_pattern, r'\1{}'.format(ACCOUNT_REPLACEMENT), masked_message)
 
 if LOG_MODE == 'full':
-    # Truncate masked_logs to no more than 250 characters
+    # Truncate masked_logs to no more than 500 characters
     masked_logs = masked_logs[:500]
 elif LOG_MODE == 'compact':
-    # Truncate masked_logs to no more than 250 characters
+    # Truncate masked_logs to no more than 150 characters
     masked_logs = masked_logs[:150]
 else:
-    # Truncate masked_logs to no more than 250 characters
+    # Truncate masked_logs to no more than 150 characters
     masked_logs = masked_logs[:150]
 
 # Create the comment string
@@ -374,25 +421,27 @@ headers = {
 # https://www.abuseipdb.com/categories
 categories = '14'
 if 'LF_SSHD' in trigger:
-    categories = '22'
+    categories = LF_SSHD_CATEGORY
 elif 'LF_DISTATTACK' in trigger:
-    categories = '4'
+    categories = LF_DISTATTACK_CATEGORY
 elif 'LF_SMTPAUTH' in trigger:
-    categories = '18'
+    categories = LF_SMTPAUTH_CATEGORY
 elif 'LF_DISTFTP' in trigger:
-    categories = '5'
+    categories = LF_DISTFTP_CATEGORY
 elif 'LF_FTPD' in trigger:
-    categories = '5'
+    categories = LF_FTPD_CATEGORY
 elif 'LF_MODSEC' in trigger:
-    categories = '21'
+    categories = LF_MODSEC_CATEGORY
 elif 'PS_LIMIT' in trigger:
-    categories = '14'
+    categories = PS_LIMIT_CATEGORY
 elif 'LF_DISTSMTP' in trigger:
-    categories = '18'
+    categories = LF_DISTSMTP_CATEGORY
 elif 'CT_LIMIT' in trigger:
-    categories = '4'
+    categories = CT_LIMIT_CATEGORY
 elif 'LF_DIRECTADMIN' in trigger:
-    categories = '21'
+    categories = LF_DIRECTADMIN_CATEGORY
+elif 'LF_CUSTOMTRIGGER' in trigger:
+    categories = LF_CUSTOMTRIGGER_CATEGORY
 
 url_encoded_ip = quote(args.arguments[0])
 
@@ -509,7 +558,7 @@ else:
                     "apiResponse": decodedResponse,
                     "notsentTimestamp": current_timestamp
                 }
-        
+
                 if JSON_APILOG_FORMAT:
                     if is_log_file_valid(DEFAULT_JSONAPILOG_FILE):
                         # Remove the last closing bracket ']'
