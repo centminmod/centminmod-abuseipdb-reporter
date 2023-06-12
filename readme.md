@@ -95,13 +95,6 @@ Edit `/etc/csf/csf.blocklists` and add blocklist for AbuseIPD and change `YOUR_A
 # Details: https://docs.abuseipdb.com/#blacklist-endpoint
 ABUSEIPDB|86400|10000|https://api.abuseipdb.com/api/v2/blacklist?key=YOUR_API_KEY&plaintext
 ```
-
-```
-# Interserver blacklist
-# Details: https://sigs.interserver.net/
-INTERSERVERDB|86400|0|https://sigs.interserver.net/ipslim.txt
-```
-
 Then restart CSF Firewall
 
 ```
