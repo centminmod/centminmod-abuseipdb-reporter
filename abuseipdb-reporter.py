@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.3.7"
+VERSION = "0.3.8"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -400,6 +400,16 @@ masked_message = re.sub(pattern, "", masked_message)
 masked_message = re.sub(username_pattern, r'\1{}'.format(USERNAME_REPLACEMENT), masked_message)
 # Replace the matched text in the masked_message variable with "account [REDACTED]"
 masked_message = re.sub(any_content_pattern, r'\1{}'.format(ACCOUNT_REPLACEMENT), masked_message)
+
+# This pattern will match the `MAC=...` pattern in your logs
+pattern = r'(MAC=)([0-9A-Fa-f]{2}[:-])+'
+# Replace MAC addresses with a 'masked' string
+masked_logs = re.sub(pattern, r'\1xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx', masked_logs)
+
+# This pattern will match the `IN=... OUT=...` pattern in your logs
+pattern = r'(IN=)(\w+)( OUT=)'
+# Replace ethernet device names with a 'masked' string
+masked_logs = re.sub(pattern, r'\1ethX\3', masked_logs)
 
 if LOG_MODE == 'full':
     # Truncate masked_logs to no more than 500 characters

@@ -15,6 +15,7 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
 * [Dependencies](#dependencies)
 * [Setup](#setup)
   * [Configuration](#configuration)
+    * [Log Rotation](#log-rotation)
   * [Local IP Cache](#local-ip-cache)
   * [abuseipdb-reporter.ini](#abuseipdb-reporterini)
     * [Override AbuseIPDB Categories](#override-abuseipdb-categories)
@@ -93,6 +94,12 @@ Edit `/etc/csf/csf.blocklists` and add blocklist for AbuseIPD and change `YOUR_A
 # AbuseIPDB blacklist
 # Details: https://docs.abuseipdb.com/#blacklist-endpoint
 ABUSEIPDB|86400|10000|https://api.abuseipdb.com/api/v2/blacklist?key=YOUR_API_KEY&plaintext
+```
+
+```
+# Interserver blacklist
+# Details: https://sigs.interserver.net/
+INTERSERVERDB|86400|0|https://sigs.interserver.net/ipslim.txt
 ```
 
 Then restart CSF Firewall
@@ -194,6 +201,26 @@ Mar 31 00:41:55 sshd[13465]: Failed password for [USERNAME] from 5.189.165.229 p
 Mar 31 00:45:27 sshd[15102]: Invalid user [USERNAME] from 5.189.165.229 port 35276
 Mar 31 00:45:29 sshd[15102]: Failed password for invalid user [USERNAME] from 5.189.165.229 port 35276 ssh2
 Mar 31 00:46:35 sshd[15383]: Invalid user [USERNAME] from 5.189.165.229 port 59862
+```
+
+### Log Rotation
+
+Setup log rotation `/etc/logrotate.d/abuseipdb` with contents
+
+```
+"/var/log/abuseipdb-reporter-debug.log" "abuseipdb-reporter-debug-json.log" "/var/log/abuseipdb-reporter-api.log" "/var/log/abuseipdb-reporter-api-json.log" {
+        daily
+        dateext
+        missingok
+        rotate 10
+        compress
+        delaycompress
+        notifempty
+}
+```
+```
+logrotate -fv /etc/logrotate.d/abuseipdb
+ls -lahrt /var/log | grep abuse
 ```
 
 ### Local IP Cache
