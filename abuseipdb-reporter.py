@@ -46,14 +46,14 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.3.8"
+VERSION = "0.3.9"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
 # LOG_MODE can be 'full' or 'compact' - compact shows 1st line of log file only
 DEBUG = True
 LOG_API_REQUEST = True
-LOG_MODE = 'full'
+LOG_MODE = 'compact'
 # JSON_LOG_FORMAT can be set to False to write to DEFAULT_LOG_FILE
 # or True to write to DEFAULT_JSONLOG_FILE defined log path below
 JSON_LOG_FORMAT = False
