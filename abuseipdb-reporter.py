@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.4.2"
+VERSION = "0.4.3"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -94,6 +94,7 @@ mask_ip = "0.0.0.x"
 # default LFD trigger AbuseIPDB categories assigned
 # https://www.abuseipdb.com/categories
 LF_DEFAULT_CATEGORY = '14'
+LF_PERMBLOCK_COUNT_CATEGORY = '14'
 LF_SSHD_CATEGORY = '22'
 LF_DISTATTACK_CATEGORY = '4'
 LF_SMTPAUTH_CATEGORY = '18'
@@ -171,6 +172,9 @@ if config.has_option('settings', 'CACHE_DURATION'):
 
 if config.has_option('settings', 'LF_DEFAULT_CATEGORY'):
     LF_DEFAULT_CATEGORY = config.get('settings', 'LF_DEFAULT_CATEGORY')
+
+if config.has_option('settings', 'LF_PERMBLOCK_COUNT_CATEGORY'):
+    LF_PERMBLOCK_COUNT_CATEGORY = config.get('settings', 'LF_PERMBLOCK_COUNT_CATEGORY')
 
 if config.has_option('settings', 'LF_SSHD_CATEGORY'):
     LF_SSHD_CATEGORY = config.get('settings', 'LF_SSHD_CATEGORY')
@@ -457,6 +461,8 @@ elif 'LF_DIRECTADMIN' in trigger:
     categories = LF_DIRECTADMIN_CATEGORY
 elif 'LF_CUSTOMTRIGGER' in trigger:
     categories = LF_CUSTOMTRIGGER_CATEGORY
+elif 'LF_PERMBLOCK_COUNT' in trigger:
+    categories = LF_PERMBLOCK_COUNT_CATEGORY
 
 url_encoded_ip = quote(args.arguments[0])
 

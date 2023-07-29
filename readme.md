@@ -300,37 +300,39 @@ USERNAME_REPLACEMENT = [USERNAME]
 ACCOUNT_REPLACEMENT = [REDACTED]
 CACHE_FILE = ip_cache.json
 CACHE_DURATION = 900
-LF_DEFAULT_CATEGORY = '14'
-LF_SSHD_CATEGORY = '22'
-LF_DISTATTACK_CATEGORY = '4'
-LF_SMTPAUTH_CATEGORY = '18'
-LF_DISTFTP_CATEGORY = '5'
-LF_FTPD_CATEGORY = '5'
-LF_MODSEC_CATEGORY = '21'
-PS_LIMIT_CATEGORY = '14'
-LF_DISTSMTP_CATEGORY = '18'
-CT_LIMIT_CATEGORY = '4'
-LF_DIRECTADMIN_CATEGORY = '21'
-LF_CUSTOMTRIGGER_CATEGORY = '21'
+LF_DEFAULT_CATEGORY = 14
+LF_PERMBLOCK_COUNT_CATEGORY = 14
+LF_SSHD_CATEGORY = 22
+LF_DISTATTACK_CATEGORY = 4
+LF_SMTPAUTH_CATEGORY = 18
+LF_DISTFTP_CATEGORY = 5
+LF_FTPD_CATEGORY = 5
+LF_MODSEC_CATEGORY = 21
+PS_LIMIT_CATEGORY = 14
+LF_DISTSMTP_CATEGORY = 18
+CT_LIMIT_CATEGORY = 4
+LF_DIRECTADMIN_CATEGORY = 21
+LF_CUSTOMTRIGGER_CATEGORY = 21
 ```
 
 ### Override AbuseIPDB Categories
 
-As you can see you can now as of version `0.3.6` override the [AbuseIPDB categories](https://www.abuseipdb.com/categories) as well in `abuseipdb-reporter.ini` file.
+As you can see you can now as of version `0.3.6` override the [AbuseIPDB categories](https://www.abuseipdb.com/categories) as well in `abuseipdb-reporter.ini` file. Updated in `0.4.3`, removing single quotes from LFD trigger category override values.
 
 ```
-LF_DEFAULT_CATEGORY = '14'
-LF_SSHD_CATEGORY = '22'
-LF_DISTATTACK_CATEGORY = '4'
-LF_SMTPAUTH_CATEGORY = '18'
-LF_DISTFTP_CATEGORY = '5'
-LF_FTPD_CATEGORY = '5'
-LF_MODSEC_CATEGORY = '21'
-PS_LIMIT_CATEGORY = '14'
-LF_DISTSMTP_CATEGORY = '18'
-CT_LIMIT_CATEGORY = '4'
-LF_DIRECTADMIN_CATEGORY = '21'
-LF_CUSTOMTRIGGER_CATEGORY = '21'
+LF_DEFAULT_CATEGORY = 14
+LF_PERMBLOCK_COUNT_CATEGORY = 14
+LF_SSHD_CATEGORY = 22
+LF_DISTATTACK_CATEGORY = 4
+LF_SMTPAUTH_CATEGORY = 18
+LF_DISTFTP_CATEGORY = 5
+LF_FTPD_CATEGORY = 5
+LF_MODSEC_CATEGORY = 21
+PS_LIMIT_CATEGORY = 14
+LF_DISTSMTP_CATEGORY = 18
+CT_LIMIT_CATEGORY = 4
+LF_DIRECTADMIN_CATEGORY = 21
+LF_CUSTOMTRIGGER_CATEGORY = 21
 ```
 
 Here's an example `abuseipdb-reporter.ini` settings config to enable API submissions to AbuseIPDB, with compact log format and JSON logging that ignores Cluster member entries where you'd inspect `DEFAULT_JSONLOG_FILE = /var/log/abuseipdb-reporter-debug-json.log` and `DEFAULT_JSONAPILOG_FILE = /var/log/abuseipdb-reporter-api-json.log` JSON logs.
