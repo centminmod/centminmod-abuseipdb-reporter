@@ -201,7 +201,7 @@ Mar 31 00:46:35 sshd[15383]: Invalid user [USERNAME] from 5.189.165.229 port 598
 Setup log rotation `/etc/logrotate.d/abuseipdb` with contents
 
 ```
-"/var/log/abuseipdb-reporter-debug.log" "abuseipdb-reporter-debug-json.log" "/var/log/abuseipdb-reporter-api.log" "/var/log/abuseipdb-reporter-api-json.log" {
+"/var/log/abuseipdb-reporter-debug.log" "/var/log/abuseipdb-reporter-debug-json.log" "/var/log/abuseipdb-reporter-api.log" "/var/log/abuseipdb-reporter-api-json.log" "/var/log/abuseipdb-invalid-log.log" {
         daily
         dateext
         missingok

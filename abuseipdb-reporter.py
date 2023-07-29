@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -461,7 +461,7 @@ elif 'LF_CUSTOMTRIGGER' in trigger:
 url_encoded_ip = quote(args.arguments[0])
 
 querystring = {
-    'ip': url_encoded_ip,
+    'ip': args.arguments[0], 
     'categories': categories,
     'comment': masked_comment
 }
@@ -472,17 +472,37 @@ def is_log_file_valid(filepath):
         with open(filepath, 'rb+') as f:
             try:
                 # Seek to the last two characters of the file
-                f.seek(-2, os.SEEK_END)
-                last_chars = f.read().decode('utf-8')
+                f.seek(-1, os.SEEK_END)
+                last_char = f.read().decode('utf-8')
 
-                # If the last characters are "\n]", then the file is valid
-                return last_chars == "\n]"
+                # If the last character is "}", the file might be missing an ending "]"
+                if last_char == "}":
+                    # Seek to the last two characters of the file
+                    f.seek(-2, os.SEEK_END)
+                    last_chars = f.read().decode('utf-8')
+
+                    # If the last characters are not "\n]", add the missing "]"
+                    if last_chars != "\n]":
+                        f.seek(0, os.SEEK_END)
+                        f.write("\n]")
+                        return True
+                elif last_char == "\n":
+                    # Seek to the last three characters of the file
+                    f.seek(-3, os.SEEK_END)
+                    last_chars = f.read().decode('utf-8')
+
+                    # If the last characters are "\n]", then the file is valid
+                    if last_chars == "\n]":
+                        return True
             except OSError:
-                # If an error occurs while seeking to the end of the file,
-                # then the file is not valid
-                return False
-    else:
-        return False
+                pass  # Ignore this error, it will be handled below
+
+    # If we reached this point, the file is not valid.
+    # Write an error message to the invalid log file.
+    with open('/var/log/abuseipdb-invalid-log.log', 'a') as f:
+        f.write(f'{datetime.now()}: Error: The log file {filepath} is not valid.\n')
+
+    return False
 
 def contains_cluster_member_pattern(message):
     pattern = r"Cluster member (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) \((.*?)\) said,"
@@ -505,18 +525,23 @@ if DEBUG:
     }
 
     if JSON_LOG_FORMAT:
-        if is_log_file_valid(DEFAULT_JSONLOG_FILE):
-            # Remove the last closing bracket ']'
-            with open(DEFAULT_JSONLOG_FILE, 'rb+') as f:
-                f.seek(-2, os.SEEK_END)
-                f.truncate()
-            # Append the new log entry followed by a comma and a newline
-            with open(DEFAULT_JSONLOG_FILE, 'a') as f:
-                f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")
-        else:
-            # Create a new log file with a single log entry
-            with open(DEFAULT_JSONLOG_FILE, 'w') as f:
-                f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
+        try:
+            if is_log_file_valid(DEFAULT_JSONLOG_FILE):
+                # Remove the last closing bracket ']'
+                with open(DEFAULT_JSONLOG_FILE, 'rb+') as f:
+                    f.seek(-2, os.SEEK_END)
+                    f.truncate()
+                # Append the new log entry followed by a comma and a newline
+                with open(DEFAULT_JSONLOG_FILE, 'a') as f:
+                    f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")
+            else:
+                # Create a new log file with a single log entry
+                with open(DEFAULT_JSONLOG_FILE, 'w') as f:
+                    f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
+        except Exception as e:
+            # Write error message to a specific log file
+            with open('/var/log/abuseipdb-invalid-log.log', 'a') as f:
+                f.write(f'{datetime.now()}: Error while writing to the log file {DEFAULT_JSONLOG_FILE}: {str(e)}\n')
 
         print("Not Sent Ports:", ports)
         print("Not Sent In/Out:", inOut)
@@ -583,18 +608,24 @@ else:
                 }
 
                 if JSON_APILOG_FORMAT:
-                    if is_log_file_valid(DEFAULT_JSONAPILOG_FILE):
+                    try:
                         # Remove the last closing bracket ']'
-                        with open(DEFAULT_JSONAPILOG_FILE, 'rb+') as f:
-                            f.seek(-2, os.SEEK_END)
-                            f.truncate()
-                        # Append the new log entry followed by a comma and a newline
-                        with open(DEFAULT_JSONAPILOG_FILE, 'a') as f:
-                            f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")
-                    else:
-                        # Create a new log file with a single log entry
-                        with open(DEFAULT_JSONAPILOG_FILE, 'w') as f:
-                            f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
+                        if is_log_file_valid(DEFAULT_JSONAPILOG_FILE):
+                            with open(DEFAULT_JSONAPILOG_FILE, 'rb+') as f:
+                                f.seek(-2, os.SEEK_END)
+                                f.truncate()
+                
+                            # Append the new log entry followed by a newline
+                            with open(DEFAULT_JSONAPILOG_FILE, 'a') as f:
+                                f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")
+                        else:
+                            # Create a new log file with a single log entry
+                            with open(DEFAULT_JSONAPILOG_FILE, 'w') as f:
+                                f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
+                    except Exception as e:
+                        # Write error message to a specific log file
+                        with open('/var/log/abuseipdb-invalid-log.log', 'a') as f:
+                            f.write(f'{datetime.now()}: Error while writing to the log file {DEFAULT_JSONAPILOG_FILE}: {str(e)}\n')
                 else:
                     with open(DEFAULT_APILOG_FILE, 'a') as f:
                         f.write("############################################################################\n")
