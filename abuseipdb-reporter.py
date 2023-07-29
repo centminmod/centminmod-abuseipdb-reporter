@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.4.3"
+VERSION = "0.4.4"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -106,6 +106,9 @@ LF_DISTSMTP_CATEGORY = '18'
 CT_LIMIT_CATEGORY = '4'
 LF_DIRECTADMIN_CATEGORY = '21'
 LF_CUSTOMTRIGGER_CATEGORY = '21'
+LF_HTACCESS_CATEGORY = '21'
+LF_IMAPD_CATEGORY = '18'
+LF_POP3D_CATEGORY = '18'
 
 # Get the absolute path of the script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -208,6 +211,15 @@ if config.has_option('settings', 'LF_DIRECTADMIN_CATEGORY'):
 
 if config.has_option('settings', 'LF_CUSTOMTRIGGER_CATEGORY'):
     LF_CUSTOMTRIGGER_CATEGORY = config.get('settings', 'LF_CUSTOMTRIGGER_CATEGORY')
+
+if config.has_option('settings', 'LF_HTACCESS_CATEGORY'):
+    LF_HTACCESS_CATEGORY = config.get('settings', 'LF_HTACCESS_CATEGORY')
+
+if config.has_option('settings', 'LF_IMAPD_CATEGORY'):
+    LF_IMAPD_CATEGORY = config.get('settings', 'LF_IMAPD_CATEGORY')
+
+if config.has_option('settings', 'LF_POP3D_CATEGORY'):
+    LF_POP3D_CATEGORY = config.get('settings', 'LF_POP3D_CATEGORY')
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='AbuseIPDB reporter script.')
@@ -463,6 +475,12 @@ elif 'LF_CUSTOMTRIGGER' in trigger:
     categories = LF_CUSTOMTRIGGER_CATEGORY
 elif 'LF_PERMBLOCK_COUNT' in trigger:
     categories = LF_PERMBLOCK_COUNT_CATEGORY
+elif 'LF_HTACCESS' in trigger:
+    categories = LF_HTACCESS_CATEGORY
+elif 'LF_IMAPD' in trigger:
+    categories = LF_IMAPD_CATEGORY
+elif 'LF_POP3D' in trigger:
+    categories = LF_POP3D_CATEGORY
 
 url_encoded_ip = quote(args.arguments[0])
 

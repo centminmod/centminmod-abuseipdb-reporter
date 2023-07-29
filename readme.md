@@ -313,6 +313,9 @@ LF_DISTSMTP_CATEGORY = 18
 CT_LIMIT_CATEGORY = 4
 LF_DIRECTADMIN_CATEGORY = 21
 LF_CUSTOMTRIGGER_CATEGORY = 21
+LF_HTACCESS_CATEGORY = 21
+LF_IMAPD_CATEGORY = 18
+LF_POP3D_CATEGORY = 18
 ```
 
 ### Override AbuseIPDB Categories
@@ -333,6 +336,9 @@ LF_DISTSMTP_CATEGORY = 18
 CT_LIMIT_CATEGORY = 4
 LF_DIRECTADMIN_CATEGORY = 21
 LF_CUSTOMTRIGGER_CATEGORY = 21
+LF_HTACCESS_CATEGORY = 21
+LF_IMAPD_CATEGORY = 18
+LF_POP3D_CATEGORY = 18
 ```
 
 Here's an example `abuseipdb-reporter.ini` settings config to enable API submissions to AbuseIPDB, with compact log format and JSON logging that ignores Cluster member entries where you'd inspect `DEFAULT_JSONLOG_FILE = /var/log/abuseipdb-reporter-debug-json.log` and `DEFAULT_JSONAPILOG_FILE = /var/log/abuseipdb-reporter-api-json.log` JSON logs.
