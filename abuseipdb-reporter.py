@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.4.1"
+VERSION = "0.4.2"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -500,7 +500,7 @@ def is_log_file_valid(filepath):
     # If we reached this point, the file is not valid.
     # Write an error message to the invalid log file.
     with open('/var/log/abuseipdb-invalid-log.log', 'a') as f:
-        f.write(f'{datetime.now()}: Error: The log file {filepath} is not valid.\n')
+        f.write(f'{datetime.datetime.now()}: Error: The log file {filepath} is not valid.\n')
 
     return False
 
@@ -541,7 +541,7 @@ if DEBUG:
         except Exception as e:
             # Write error message to a specific log file
             with open('/var/log/abuseipdb-invalid-log.log', 'a') as f:
-                f.write(f'{datetime.now()}: Error while writing to the log file {DEFAULT_JSONLOG_FILE}: {str(e)}\n')
+                f.write(f'{datetime.datetime.now()}: Error while writing to the log file {DEFAULT_JSONLOG_FILE}: {str(e)}\n')
 
         print("Not Sent Ports:", ports)
         print("Not Sent In/Out:", inOut)
@@ -625,7 +625,7 @@ else:
                     except Exception as e:
                         # Write error message to a specific log file
                         with open('/var/log/abuseipdb-invalid-log.log', 'a') as f:
-                            f.write(f'{datetime.now()}: Error while writing to the log file {DEFAULT_JSONAPILOG_FILE}: {str(e)}\n')
+                            f.write(f'{datetime.datetime.now()}: Error while writing to the log file {DEFAULT_JSONAPILOG_FILE}: {str(e)}\n')
                 else:
                     with open(DEFAULT_APILOG_FILE, 'a') as f:
                         f.write("############################################################################\n")
