@@ -284,6 +284,7 @@ The script now supports `abuseipdb-reporter.ini` file you can create within same
 ```
 [settings]
 DEBUG = True
+ETHERNET_MASK = True
 LOG_API_REQUEST = True
 LOG_MODE = full
 JSON_LOG_FORMAT = False
@@ -346,6 +347,7 @@ Here's an example `abuseipdb-reporter.ini` settings config to enable API submiss
 ```
 [settings]
 DEBUG = False
+ETHERNET_MASK = True
 LOG_API_REQUEST = True
 LOG_MODE = compact
 JSON_LOG_FORMAT = True

@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.4.4"
+VERSION = "0.4.5"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -83,6 +83,7 @@ ACCOUNT_REPLACEMENT = '[REDACTED]'
 EMAIL_REPLACEMENT = 'EMAIL'
 
 # Set privacy masks
+ETHERNET_MASK = True
 hostname = socket.gethostname()
 full_hostname = socket.getfqdn()
 short_hostname = socket.gethostname()
@@ -120,6 +121,9 @@ config.read(os.path.join(script_dir, 'abuseipdb-reporter.ini'))
 # Override default settings if present in the settings file
 if config.has_option('settings', 'DEBUG'):
     DEBUG = config.getboolean('settings', 'DEBUG')
+
+if config.has_option('settings', 'ETHERNET_MASK'):
+    ETHERNET_MASK = config.getboolean('settings', 'ETHERNET_MASK')
 
 if config.has_option('settings', 'LOG_API_REQUEST'):
     LOG_API_REQUEST = config.getboolean('settings', 'LOG_API_REQUEST')
@@ -423,10 +427,11 @@ pattern = r'(MAC=)([0-9A-Fa-f]{2}[:-])+'
 # Replace MAC addresses with a 'masked' string
 masked_logs = re.sub(pattern, r'\1xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx', masked_logs)
 
-# This pattern will match the `IN=... OUT=...` pattern in your logs
-pattern = r'(IN=)(\w+)( OUT=)'
-# Replace ethernet device names with a 'masked' string
-masked_logs = re.sub(pattern, r'\1ethX\3', masked_logs)
+if ETHERNET_MASK:
+    # This pattern will match the `IN=... OUT=...` pattern in your logs
+    pattern = r'(IN=)(\w+)( OUT=)'
+    # Replace ethernet device names with a 'masked' string
+    masked_logs = re.sub(pattern, r'\1ethX\3', masked_logs)
 
 if LOG_MODE == 'full':
     # Truncate masked_logs to no more than 500 characters
