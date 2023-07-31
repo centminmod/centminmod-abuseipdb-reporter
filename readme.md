@@ -15,6 +15,7 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
 * [Dependencies](#dependencies)
 * [Setup](#setup)
   * [Configuration](#configuration)
+    * [IP Exclusion List](#ip-exclusion-list)
     * [Log Rotation](#log-rotation)
   * [Local IP Cache](#local-ip-cache)
   * [abuseipdb-reporter.ini](#abuseipdb-reporterini)
@@ -194,6 +195,19 @@ Mar 31 00:41:55 sshd[13465]: Failed password for [USERNAME] from 5.189.165.229 p
 Mar 31 00:45:27 sshd[15102]: Invalid user [USERNAME] from 5.189.165.229 port 35276
 Mar 31 00:45:29 sshd[15102]: Failed password for invalid user [USERNAME] from 5.189.165.229 port 35276 ssh2
 Mar 31 00:46:35 sshd[15383]: Invalid user [USERNAME] from 5.189.165.229 port 59862
+```
+
+### IP Exclusion List
+
+With `abuseipdb-reporter.py 0.4.6` added IP exclusion list `abuseipdb-exclusions.txt`. You can add one IP address per line to configure the exclusion file to skip AbuseIPDB API submission. Example below has `127.0.0.11` added to `abuseipdb-exclusions.txt` located in same directory as `abuseipdb-reporter.py`.
+
+```
+Loaded cache data before conversion: {'127.0.0.11': 1690830026.9128997}
+Loaded cache data after conversion: {'127.0.0.11': 1690830026.9128997}
+Loaded cache: {'127.0.0.11': 1690830026.9128997}
+Cleaned cache: {'127.0.0.11': 1690830026.9128997}
+Current cache: {'127.0.0.11': 1690830026.9128997}
+IP: 127.0.0.11 is in exclusions. Skipping report.
 ```
 
 ### Log Rotation

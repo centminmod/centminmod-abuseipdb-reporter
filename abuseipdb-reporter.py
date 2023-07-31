@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.4.5"
+VERSION = "0.4.6"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -263,6 +263,10 @@ print("Received Message:", message)
 print("Received Logs:", logs)
 print("Received Trigger:", trigger, '\n')
 
+def load_excluded_ips(filename):
+    with open(filename, 'r') as f:
+        return set(line.strip() for line in f)
+
 def load_cache():
     if os.path.isfile(CACHE_FILE):
         with open(CACHE_FILE, 'r') as f:
@@ -306,6 +310,14 @@ def get_all_public_ips():
         sys.exit(1)
 
 public_ips = get_all_public_ips()
+
+# Check for exclusion file that lists one IP address per line
+# for skipping API submissions
+exclusion_file = 'abuseipdb-exclusions.txt'
+excluded_ips = set()
+
+if os.path.exists(exclusion_file):
+    excluded_ips = load_excluded_ips(exclusion_file)
 
 # Get the values from the csf.conf file
 with open('/etc/csf/csf.conf') as f:
@@ -616,7 +628,15 @@ else:
     print("Loaded cache:", cache)
     cache = clean_cache(cache)
     print("Current cache:", cache)
+
     if not (IGNORE_CLUSTER_SUBMISSIONS and contains_cluster_member_pattern(message)):
+        # Define IP
+        ip = args.arguments[0]
+    
+        # If IP is in exclusions, do not report
+        if ip in excluded_ips:
+            print("IP: {} is in exclusions. Skipping report.".format(ip))
+            sys.exit()
         # Check if the IP address is in the cache before sending the report
         if not ip_in_cache(args.arguments[0], cache):
             response = requests.post(url, headers=headers, params=querystring)
