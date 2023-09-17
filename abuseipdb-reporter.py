@@ -44,9 +44,10 @@ import os
 import atexit
 import time
 import datetime
+import fcntl
 from urllib.parse import quote
 
-VERSION = "0.4.8"
+VERSION = "0.4.9"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -230,6 +231,12 @@ parser = argparse.ArgumentParser(description='AbuseIPDB reporter script.')
 parser.add_argument('-log', dest='log_file', default=DEFAULT_LOG_FILE, help='Path to the log file.')
 parser.add_argument('arguments', nargs='*', help='Arguments passed by CSF/LFD')
 args = parser.parse_args()
+
+def lock_file(file):
+    fcntl.flock(file.fileno(), fcntl.LOCK_EX)
+
+def unlock_file(file):
+    fcntl.flock(file.fileno(), fcntl.LOCK_UN)
 
 def log_message(log_file, message):
     try:
@@ -532,6 +539,7 @@ def is_log_file_valid(filepath):
     # Check if the file exists and is not empty
     if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
         with open(filepath, 'rb+') as f:
+            lock_file(f)  # Lock the file
             try:
                 # Seek to the last two characters of the file
                 f.seek(-1, os.SEEK_END)
@@ -556,12 +564,14 @@ def is_log_file_valid(filepath):
                         return True
             except OSError:
                 pass  # Ignore this error, it will be handled below
+            finally:
+                unlock_file(f)  # Unlock the file before exiting
 
     # If we reached this point, the file is not valid.
     # Write an error message with more details to the invalid log file.
     with open('/var/log/abuseipdb-invalid-log.log', 'a') as f:
         error_msg = f'{datetime.datetime.now()}: Error: The log file {filepath} is not valid. Last characters: {last_chars}'
-        f.write(error_msg + '\\n')
+        f.write(error_msg + '\n')
 
     return False
 
@@ -586,24 +596,24 @@ if DEBUG:
     }
 
     if JSON_LOG_FORMAT:
-        try:
-            if is_log_file_valid(DEFAULT_JSONLOG_FILE):
-                # Remove the last closing bracket ']'
-                with open(DEFAULT_JSONLOG_FILE, 'rb+') as f:
-                    f.seek(-2, os.SEEK_END)
+        with open(DEFAULT_JSONLOG_FILE, 'a') as f:  # Open the file in append mode
+            lock_file(f)
+            try:
+                if is_log_file_valid(DEFAULT_JSONLOG_FILE):
+                    f.seek(-2, os.SEEK_END)  # Remove the last closing bracket ']'
                     f.truncate()
-                # Append the new log entry followed by a comma and a newline
-                with open(DEFAULT_JSONLOG_FILE, 'a') as f:
-                    f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")
-            else:
-                renamed_file = rename_with_timestamp(DEFAULT_JSONLOG_FILE)
-                # Create a new log file with a single log entry
-                with open(DEFAULT_JSONLOG_FILE, 'w') as f:
-                    f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
-        except Exception as e:
-            # Write error message to a specific log file
-            with open('/var/log/abuseipdb-invalid-log.log', 'a') as f:
-                f.write(f'{datetime.datetime.now()}: Error while writing to the log file {DEFAULT_JSONLOG_FILE}: {str(e)}\n')
+                    f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")  # Append new log entry
+                else:
+                    unlock_file(f)  # Release the lock before renaming
+                    renamed_file = rename_with_timestamp(DEFAULT_JSONLOG_FILE)
+                    with open(DEFAULT_JSONLOG_FILE, 'w') as new_f:
+                        new_f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
+            except Exception as e:
+                # Write error message to a specific log file
+                with open('/var/log/abuseipdb-invalid-log.log', 'a') as error_f:
+                    error_f.write(f'{datetime.datetime.now()}: Error while writing to the log file {DEFAULT_JSONLOG_FILE}: {str(e)}\n')
+            finally:
+                unlock_file(f)  # Always ensure to release the lock
 
         print("Not Sent Ports:", ports)
         print("Not Sent In/Out:", inOut)
@@ -678,25 +688,24 @@ else:
                 }
 
                 if JSON_APILOG_FORMAT:
-                    try:
-                        # Remove the last closing bracket ']'
-                        if is_log_file_valid(DEFAULT_JSONAPILOG_FILE):
-                            with open(DEFAULT_JSONAPILOG_FILE, 'rb+') as f:
-                                f.seek(-2, os.SEEK_END)
+                    with open(DEFAULT_JSONAPILOG_FILE, 'a') as f:  # Open the file in append mode
+                        lock_file(f)
+                        try:
+                            if is_log_file_valid(DEFAULT_JSONAPILOG_FILE):
+                                f.seek(-2, os.SEEK_END)  # Remove the last closing bracket ']'
                                 f.truncate()
-                
-                            # Append the new log entry followed by a newline
-                            with open(DEFAULT_JSONAPILOG_FILE, 'a') as f:
-                                f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")
-                        else:
-                            renamed_file = rename_with_timestamp(DEFAULT_JSONAPILOG_FILE)
-                            # Create a new log file with a single log entry
-                            with open(DEFAULT_JSONAPILOG_FILE, 'w') as f:
-                                f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
-                    except Exception as e:
-                        # Write error message to a specific log file
-                        with open('/var/log/abuseipdb-invalid-log.log', 'a') as f:
-                            f.write(f'{datetime.datetime.now()}: Error while writing to the log file {DEFAULT_JSONAPILOG_FILE}: {str(e)}\n')
+                                f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")  # Append new log entry
+                            else:
+                                unlock_file(f)  # Release the lock before renaming
+                                renamed_file = rename_with_timestamp(DEFAULT_JSONAPILOG_FILE)
+                                with open(DEFAULT_JSONAPILOG_FILE, 'w') as new_f:
+                                    new_f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
+                        except Exception as e:
+                            # Write error message to a specific log file
+                            with open('/var/log/abuseipdb-invalid-log.log', 'a') as error_f:
+                                error_f.write(f'{datetime.datetime.now()}: Error while writing to the log file {DEFAULT_JSONAPILOG_FILE}: {str(e)}\n')
+                        finally:
+                            unlock_file(f)  # Always ensure to release the lock
                 else:
                     with open(DEFAULT_APILOG_FILE, 'a') as f:
                         f.write("############################################################################\n")
