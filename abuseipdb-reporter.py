@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.4.6"
+VERSION = "0.4.7"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -232,11 +232,25 @@ parser.add_argument('arguments', nargs='*', help='Arguments passed by CSF/LFD')
 args = parser.parse_args()
 
 def log_message(log_file, message):
-    if not os.path.exists(log_file):
-        with open(log_file, 'w') as f:
-            f.write("Log file created.\n")
-    with open(log_file, 'a+') as f:
-        f.write(message + '\n')
+    try:
+        # Ensure the directory containing the log file exists
+        log_directory = os.path.dirname(log_file)
+        if not os.path.exists(log_directory):
+            os.makedirs(log_directory)
+
+        # Check if log file exists; if not, create it
+        if not os.path.exists(log_file):
+            with open(log_file, 'w') as f:
+                f.write("Log file created.\n")
+
+        # Append the message to the log file
+        with open(log_file, 'a+') as f:
+            f.write(message + '\n')
+    except IOError as e:
+        error_msg = f"Failed to write to log file {log_file}. Error: {e}"
+        print(error_msg)  # Print to console for immediate feedback
+        with open("/var/log/abuseipdb-reporter-log-message-function.log", 'a+') as error_log:
+            error_log.write(error_msg + '\n')
 
 print(f"\nReceived arguments: {args.arguments}\n")
 
@@ -518,7 +532,6 @@ def is_log_file_valid(filepath):
 
                 # If the last character is "}", the file might be missing an ending "]"
                 if last_char == "}":
-                    # Seek to the last two characters of the file
                     f.seek(-2, os.SEEK_END)
                     last_chars = f.read().decode('utf-8')
 
@@ -528,7 +541,6 @@ def is_log_file_valid(filepath):
                         f.write("\n]")
                         return True
                 elif last_char == "\n":
-                    # Seek to the last three characters of the file
                     f.seek(-3, os.SEEK_END)
                     last_chars = f.read().decode('utf-8')
 
@@ -539,9 +551,10 @@ def is_log_file_valid(filepath):
                 pass  # Ignore this error, it will be handled below
 
     # If we reached this point, the file is not valid.
-    # Write an error message to the invalid log file.
+    # Write an error message with more details to the invalid log file.
     with open('/var/log/abuseipdb-invalid-log.log', 'a') as f:
-        f.write(f'{datetime.datetime.now()}: Error: The log file {filepath} is not valid.\n')
+        error_msg = f'{datetime.datetime.now()}: Error: The log file {filepath} is not valid. Last characters: {last_chars}'
+        f.write(error_msg + '\n')
 
     return False
 
