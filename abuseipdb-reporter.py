@@ -46,7 +46,7 @@ import time
 import datetime
 from urllib.parse import quote
 
-VERSION = "0.4.7"
+VERSION = "0.4.8"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -323,6 +323,12 @@ def get_all_public_ips():
         log_message(args.log_file, "Error: Unable to fetch all public IPs.")
         sys.exit(1)
 
+def rename_with_timestamp(filepath):
+    timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    new_filepath = f"{filepath}.{timestamp}"
+    os.rename(filepath, new_filepath)
+    return new_filepath
+
 public_ips = get_all_public_ips()
 
 # Check for exclusion file that lists one IP address per line
@@ -522,6 +528,7 @@ querystring = {
 }
 
 def is_log_file_valid(filepath):
+    last_chars = ""  # Initialize to prevent "referenced before assignment" error
     # Check if the file exists and is not empty
     if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
         with open(filepath, 'rb+') as f:
@@ -554,7 +561,7 @@ def is_log_file_valid(filepath):
     # Write an error message with more details to the invalid log file.
     with open('/var/log/abuseipdb-invalid-log.log', 'a') as f:
         error_msg = f'{datetime.datetime.now()}: Error: The log file {filepath} is not valid. Last characters: {last_chars}'
-        f.write(error_msg + '\n')
+        f.write(error_msg + '\\n')
 
     return False
 
@@ -589,6 +596,7 @@ if DEBUG:
                 with open(DEFAULT_JSONLOG_FILE, 'a') as f:
                     f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")
             else:
+                renamed_file = rename_with_timestamp(DEFAULT_JSONLOG_FILE)
                 # Create a new log file with a single log entry
                 with open(DEFAULT_JSONLOG_FILE, 'w') as f:
                     f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
@@ -681,6 +689,7 @@ else:
                             with open(DEFAULT_JSONAPILOG_FILE, 'a') as f:
                                 f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")
                         else:
+                            renamed_file = rename_with_timestamp(DEFAULT_JSONAPILOG_FILE)
                             # Create a new log file with a single log entry
                             with open(DEFAULT_JSONAPILOG_FILE, 'w') as f:
                                 f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
