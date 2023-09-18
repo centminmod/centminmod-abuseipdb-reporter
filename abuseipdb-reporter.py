@@ -49,7 +49,7 @@ import datetime
 import fcntl
 from urllib.parse import quote
 
-VERSION = "0.5.1"
+VERSION = "0.5.2"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -134,7 +134,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 # Read settings from the settings.ini file in the same directory as the script
 config = configparser.ConfigParser()
 config.read(os.path.join(script_dir, 'abuseipdb-reporter.ini'))
-logger.info(f"Read {script_dir}abuseipdb-reporter.ini.")
+logger.info(f"Read {script_dir}/abuseipdb-reporter.ini.")
 
 # Override default settings if present in the settings file
 if config.has_option('settings', 'DEBUG'):
@@ -330,11 +330,21 @@ message = args.arguments[5]
 logs = args.arguments[6]
 trigger = args.arguments[7]
 
+logger.debug(f"Received Ports: {ports}")
 print("Received Ports:", ports)
+
+logger.debug(f"Received In/Out: {inOut}")
 print("Received In/Out:", inOut)
+
+logger.debug(f"Received Message: {message}")
 print("Received Message:", message)
+
+logger.debug(f"Received Logs: {logs}")
 print("Received Logs:", logs)
+
+logger.debug(f"Received Trigger: {trigger}")
 print("Received Trigger:", trigger, '\n')
+
 
 def load_excluded_ips(filename):
     with open(filename, 'r') as f:
@@ -343,33 +353,48 @@ def load_excluded_ips(filename):
 def load_cache():
     if os.path.isfile(CACHE_FILE):
         with open(CACHE_FILE, 'r') as f:
-            data = json.load(f)
-            print("Loaded cache data before conversion:", data)
-            # Convert timestamp values to float
-            data = {ip: float(timestamp) for ip, timestamp in data.items()}
-            print("Loaded cache data after conversion:", data)
-        return data
+            try:
+                data = json.load(f)
+                logger.debug("Loaded cache data before conversion: %s", data)
+                print("Loaded cache data before conversion:", data)
+                # Convert timestamp values to float
+                data = {ip: float(timestamp) for ip, timestamp in data.items()}
+                logger.debug("Loaded cache data after conversion: %s", data)
+                print("Loaded cache data after conversion:", data)
+                return data
+            except json.JSONDecodeError:
+                logger.error("Failed to decode JSON from cache file. Returning an empty cache.")
+                logger.error("Corrupted cache file detected. Recreating it.")
+                # Clear or recreate the cache file
+                with open(CACHE_FILE, 'w') as f:
+                    f.write("{}")
+                return {}
     else:
         return {}
 
 def save_cache(cache):
-    with open(CACHE_FILE, "w") as f:
+    with open(CACHE_FILE, 'w') as f:
         json.dump(cache, f)
+        f.write('\n')  # Ensure the file ends with a newline
 
 def clean_cache(cache):
     current_time = time.time()
-    cleaned_cache = {ip: timestamp for ip, timestamp in cache.items() if current_time - timestamp < CACHE_DURATION}   
+    cleaned_cache = {ip: timestamp for ip, timestamp in cache.items() if current_time - timestamp < CACHE_DURATION}
+    logger.debug("Cleaned cache: %s", cleaned_cache)
     print("Cleaned cache:", cleaned_cache)
     return cleaned_cache
 
 def ip_in_cache(ip, cache):
     in_cache = ip in cache
+    logger.debug("IP in cache: %s", in_cache)
     print("IP in cache:", in_cache)
     return in_cache
 
 def update_cache(ip, cache):
     cache[ip] = time.time()
-    print("Updated cache:", cache)
+    logger.debug("Updated cache: %s", cache)
+    save_cache(cache)
+    logger.debug("Saved the updated cache to file.")
 
 def get_all_public_ips():
     try:
@@ -378,6 +403,7 @@ def get_all_public_ips():
         ips = output.strip().split('\n')
         return ips
     except subprocess.CalledProcessError:
+        logger.error("Error: Unable to fetch all public IPs.")
         print("Error: Unable to fetch all public IPs.")
         log_message(args.log_file, "Error: Unable to fetch all public IPs.")
         sys.exit(1)
@@ -702,15 +728,19 @@ else:
     print("Sending Message:", masked_message)
     print("Sending Logs:", masked_logs)
     print("Sending Trigger:", trigger, '\n')
-    # Load and clean the cache
-    cache = load_cache()
-    if not cache:
-        save_cache(cache)
-    logger.debug("Loaded cache: %s", cache)
-    print("Loaded cache:", cache)
-    cache = clean_cache(cache)
-    logger.debug("Current cache: %s", cache)
-    print("Current cache:", cache)
+
+    try:
+        # Load and clean the cache
+        cache = load_cache()
+        if not cache:
+            save_cache(cache)
+        logger.debug("Loaded cache: %s", cache)
+        print("Loaded cache:", cache)
+        cache = clean_cache(cache)
+        logger.debug("Current cache: %s", cache)
+        print("Current cache:", cache)
+    except Exception as e:
+        logger.error(f"Error while loading or cleaning the cache: {str(e)}")
 
     if not (IGNORE_CLUSTER_SUBMISSIONS and contains_cluster_member_pattern(message)):
         # Define IP
