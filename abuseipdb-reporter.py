@@ -33,6 +33,8 @@ except ImportError:
     print("The 'requests' package is not installed. Please install it by running:")
     print("pip3 install requests")
     exit(1)
+import logging
+import logging.handlers
 import json
 import sys
 import argparse
@@ -47,7 +49,7 @@ import datetime
 import fcntl
 from urllib.parse import quote
 
-VERSION = "0.4.9"
+VERSION = "0.5.0"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -112,119 +114,168 @@ LF_HTACCESS_CATEGORY = '21'
 LF_IMAPD_CATEGORY = '18'
 LF_POP3D_CATEGORY = '18'
 
+log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+log_file = "/var/log/abuseipdb-detailed.log"
+
+# Set up the logger
+logger = logging.getLogger('AbuseIPDBReporter')
+logger.setLevel(logging.DEBUG)
+
+file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=10*1024*1024, backupCount=5)
+file_handler.setFormatter(log_formatter)
+logger.addHandler(file_handler)
+
+logger.info("Script started.")
+
 # Get the absolute path of the script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Read settings from the settings.ini file in the same directory as the script
 config = configparser.ConfigParser()
 config.read(os.path.join(script_dir, 'abuseipdb-reporter.ini'))
+logger.info(f"Read {script_dir}abuseipdb-reporter.ini.")
 
 # Override default settings if present in the settings file
 if config.has_option('settings', 'DEBUG'):
     DEBUG = config.getboolean('settings', 'DEBUG')
+    logger.debug(f"DEBUG set to {DEBUG} from .ini file")
 
 if config.has_option('settings', 'ETHERNET_MASK'):
     ETHERNET_MASK = config.getboolean('settings', 'ETHERNET_MASK')
+    logger.debug(f"ETHERNET_MASK set to {ETHERNET_MASK} from .ini file")
 
 if config.has_option('settings', 'LOG_API_REQUEST'):
     LOG_API_REQUEST = config.getboolean('settings', 'LOG_API_REQUEST')
+    logger.debug(f"LOG_API_REQUEST set to {LOG_API_REQUEST} from .ini file")
 
 if config.has_option('settings', 'LOG_MODE'):
     LOG_MODE = config.get('settings', 'LOG_MODE')
+    logger.debug(f"LOG_MODE set to {LOG_MODE} from .ini file")
 
 if config.has_option('settings', 'JSON_LOG_FORMAT'):
     JSON_LOG_FORMAT = config.getboolean('settings', 'JSON_LOG_FORMAT')
+    logger.debug(f"JSON_LOG_FORMAT set to {JSON_LOG_FORMAT} from .ini file")
 
 if config.has_option('settings', 'IGNORE_CLUSTER_SUBMISSIONS'):
     IGNORE_CLUSTER_SUBMISSIONS = config.getboolean('settings', 'IGNORE_CLUSTER_SUBMISSIONS')
+    logger.debug(f"IGNORE_CLUSTER_SUBMISSIONS set to {IGNORE_CLUSTER_SUBMISSIONS} from .ini file")
 
 if config.has_option('settings', 'API_KEY'):
     API_KEY = config.get('settings', 'API_KEY')
+    logger.debug(f"API_KEY set from .ini file")
 
 if config.has_option('settings', 'DEFAULT_LOG_FILE'):
     DEFAULT_LOG_FILE = config.get('settings', 'DEFAULT_LOG_FILE')
+    logger.debug(f"DEFAULT_LOG_FILE set to {DEFAULT_LOG_FILE} from .ini file")
 
 if config.has_option('settings', 'DEFAULT_JSONLOG_FILE'):
     DEFAULT_JSONLOG_FILE = config.get('settings', 'DEFAULT_JSONLOG_FILE')
+    logger.debug(f"DEFAULT_JSONLOG_FILE set to {DEFAULT_JSONLOG_FILE} from .ini file")
 
 if config.has_option('settings', 'DEFAULT_APILOG_FILE'):
     DEFAULT_APILOG_FILE = config.get('settings', 'DEFAULT_APILOG_FILE')
+    logger.debug(f"DEFAULT_APILOG_FILE set to {DEFAULT_APILOG_FILE} from .ini file")
 
 if config.has_option('settings', 'JSON_APILOG_FORMAT'):
     JSON_APILOG_FORMAT = config.getboolean('settings', 'JSON_APILOG_FORMAT')
+    logger.debug(f"JSON_APILOG_FORMAT set to {JSON_APILOG_FORMAT} from .ini file")
 
 if config.has_option('settings', 'DEFAULT_JSONAPILOG_FILE'):
     DEFAULT_JSONAPILOG_FILE = config.get('settings', 'DEFAULT_JSONAPILOG_FILE')
+    logger.debug(f"DEFAULT_JSONAPILOG_FILE set to {DEFAULT_JSONAPILOG_FILE} from .ini file")
 
 if config.has_option('settings', 'mask_hostname'):
     mask_hostname = config.get('settings', 'mask_hostname')
+    logger.debug(f"mask_hostname set to {mask_hostname} from .ini file")
 
 if config.has_option('settings', 'mask_ip'):
     mask_ip = config.get('settings', 'mask_ip')
+    logger.debug(f"mask_ip set to {mask_ip} from .ini file")
 
 if config.has_option('settings', 'USERNAME_REPLACEMENT'):
     USERNAME_REPLACEMENT = config.get('settings', 'USERNAME_REPLACEMENT')
+    logger.debug(f"USERNAME_REPLACEMENT set to {USERNAME_REPLACEMENT} from .ini file")
 
 if config.has_option('settings', 'ACCOUNT_REPLACEMENT'):
     ACCOUNT_REPLACEMENT = config.get('settings', 'ACCOUNT_REPLACEMENT')
+    logger.debug(f"ACCOUNT_REPLACEMENT set to {ACCOUNT_REPLACEMENT} from .ini file")
 
 if config.has_option('settings', 'EMAIL_REPLACEMENT'):
     EMAIL_REPLACEMENT = config.get('settings', 'EMAIL_REPLACEMENT')
+    logger.debug(f"EMAIL_REPLACEMENT set to {EMAIL_REPLACEMENT} from .ini file")
 
 if config.has_option('settings', 'CACHE_FILE'):
     CACHE_FILE = config.get('settings', 'CACHE_FILE')
+    logger.debug(f"CACHE_FILE set to {CACHE_FILE} from .ini file")
 
 if config.has_option('settings', 'CACHE_DURATION'):
     CACHE_DURATION = config.get('settings', 'CACHE_DURATION')
     CACHE_DURATION = float(CACHE_DURATION)
+    logger.debug(f"CACHE_DURATION set to {CACHE_DURATION} from .ini file")
 
 if config.has_option('settings', 'LF_DEFAULT_CATEGORY'):
     LF_DEFAULT_CATEGORY = config.get('settings', 'LF_DEFAULT_CATEGORY')
+    logger.debug(f"LF_DEFAULT_CATEGORY set to {LF_DEFAULT_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_PERMBLOCK_COUNT_CATEGORY'):
     LF_PERMBLOCK_COUNT_CATEGORY = config.get('settings', 'LF_PERMBLOCK_COUNT_CATEGORY')
+    logger.debug(f"LF_PERMBLOCK_COUNT_CATEGORY set to {LF_PERMBLOCK_COUNT_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_SSHD_CATEGORY'):
     LF_SSHD_CATEGORY = config.get('settings', 'LF_SSHD_CATEGORY')
+    logger.debug(f"LF_SSHD_CATEGORY set to {LF_SSHD_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_DISTATTACK_CATEGORY'):
     LF_DISTATTACK_CATEGORY = config.get('settings', 'LF_DISTATTACK_CATEGORY')
+    logger.debug(f"LF_DISTATTACK_CATEGORY set to {LF_DISTATTACK_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_SMTPAUTH_CATEGORY'):
     LF_SMTPAUTH_CATEGORY = config.get('settings', 'LF_SMTPAUTH_CATEGORY')
+    logger.debug(f"LF_SMTPAUTH_CATEGORY set to {LF_SMTPAUTH_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_DISTFTP_CATEGORY'):
     LF_DISTFTP_CATEGORY = config.get('settings', 'LF_DISTFTP_CATEGORY')
+    logger.debug(f"LF_DISTFTP_CATEGORY set to {LF_DISTFTP_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_FTPD_CATEGORY'):
     LF_FTPD_CATEGORY = config.get('settings', 'LF_FTPD_CATEGORY')
+    logger.debug(f"LF_FTPD_CATEGORY set to {LF_FTPD_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_MODSEC_CATEGORY'):
     LF_MODSEC_CATEGORY = config.get('settings', 'LF_MODSEC_CATEGORY')
+    logger.debug(f"LF_MODSEC_CATEGORY set to {LF_MODSEC_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'PS_LIMIT_CATEGORY'):
     PS_LIMIT_CATEGORY = config.get('settings', 'PS_LIMIT_CATEGORY')
+    logger.debug(f"PS_LIMIT_CATEGORY set to {PS_LIMIT_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_DISTSMTP_CATEGORY'):
     LF_DISTSMTP_CATEGORY = config.get('settings', 'LF_DISTSMTP_CATEGORY')
+    logger.debug(f"LF_DISTSMTP_CATEGORY set to {LF_DISTSMTP_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'CT_LIMIT_CATEGORY'):
     CT_LIMIT_CATEGORY = config.get('settings', 'CT_LIMIT_CATEGORY')
+    logger.debug(f"CT_LIMIT_CATEGORY set to {CT_LIMIT_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_DIRECTADMIN_CATEGORY'):
     LF_DIRECTADMIN_CATEGORY = config.get('settings', 'LF_DIRECTADMIN_CATEGORY')
+    logger.debug(f"LF_DIRECTADMIN_CATEGORY set to {LF_DIRECTADMIN_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_CUSTOMTRIGGER_CATEGORY'):
     LF_CUSTOMTRIGGER_CATEGORY = config.get('settings', 'LF_CUSTOMTRIGGER_CATEGORY')
+    logger.debug(f"LF_CUSTOMTRIGGER_CATEGORY set to {LF_CUSTOMTRIGGER_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_HTACCESS_CATEGORY'):
     LF_HTACCESS_CATEGORY = config.get('settings', 'LF_HTACCESS_CATEGORY')
+    logger.debug(f"LF_HTACCESS_CATEGORY set to {LF_HTACCESS_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_IMAPD_CATEGORY'):
     LF_IMAPD_CATEGORY = config.get('settings', 'LF_IMAPD_CATEGORY')
+    logger.debug(f"LF_IMAPD_CATEGORY set to {LF_IMAPD_CATEGORY} from .ini file")
 
 if config.has_option('settings', 'LF_POP3D_CATEGORY'):
     LF_POP3D_CATEGORY = config.get('settings', 'LF_POP3D_CATEGORY')
+    logger.debug(f"LF_POP3D_CATEGORY set to {LF_POP3D_CATEGORY} from .ini file")
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='AbuseIPDB reporter script.')
@@ -533,47 +584,15 @@ querystring = {
     'categories': categories,
     'comment': masked_comment
 }
+logger.debug(f"Constructed querystring: {querystring}")
 
 def is_log_file_valid(filepath):
-    last_chars = ""  # Initialize to prevent "referenced before assignment" error
-    # Check if the file exists and is not empty
-    if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
-        with open(filepath, 'rb+') as f:
-            lock_file(f)  # Lock the file
-            try:
-                # Seek to the last two characters of the file
-                f.seek(-1, os.SEEK_END)
-                last_char = f.read().decode('utf-8')
-
-                # If the last character is "}", the file might be missing an ending "]"
-                if last_char == "}":
-                    f.seek(-2, os.SEEK_END)
-                    last_chars = f.read().decode('utf-8')
-
-                    # If the last characters are not "\n]", add the missing "]"
-                    if last_chars != "\n]":
-                        f.seek(0, os.SEEK_END)
-                        f.write("\n]")
-                        return True
-                elif last_char == "\n":
-                    f.seek(-3, os.SEEK_END)
-                    last_chars = f.read().decode('utf-8')
-
-                    # If the last characters are "\n]", then the file is valid
-                    if last_chars == "\n]":
-                        return True
-            except OSError:
-                pass  # Ignore this error, it will be handled below
-            finally:
-                unlock_file(f)  # Unlock the file before exiting
-
-    # If we reached this point, the file is not valid.
-    # Write an error message with more details to the invalid log file.
-    with open('/var/log/abuseipdb-invalid-log.log', 'a') as f:
-        error_msg = f'{datetime.datetime.now()}: Error: The log file {filepath} is not valid. Last characters: {last_chars}'
-        f.write(error_msg + '\n')
-
-    return False
+    try:
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+            return isinstance(data, list)  # Check if the data is a list
+    except:
+        return False
 
 def contains_cluster_member_pattern(message):
     pattern = r"Cluster member (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) \((.*?)\) said,"
@@ -596,25 +615,41 @@ if DEBUG:
     }
 
     if JSON_LOG_FORMAT:
-        with open(DEFAULT_JSONLOG_FILE, 'a') as f:  # Open the file in append mode
+        logger.debug(f"Attempting to write to {DEFAULT_JSONLOG_FILE} in JSON format.")
+        with open(DEFAULT_JSONLOG_FILE, 'ab+') as f:  # Open the file in append + read mode in BINARY
             lock_file(f)
+            logger.debug(f"File {DEFAULT_JSONLOG_FILE} locked for writing.")
+            
+            # Check the size of the file
+            f.seek(0, os.SEEK_END)  # Move to end of file
+            filesize = f.tell()  # Get current position, which is the filesize
+            
             try:
-                if is_log_file_valid(DEFAULT_JSONLOG_FILE):
-                    f.seek(-2, os.SEEK_END)  # Remove the last closing bracket ']'
+                if filesize >= 2 and is_log_file_valid(DEFAULT_JSONLOG_FILE):
+                    logger.debug(f"File {DEFAULT_JSONLOG_FILE} is valid. Appending log entry.")
+                    f.seek(-2, os.SEEK_END)  # Move two bytes back from end to overwrite the closing bracket ']'
                     f.truncate()
-                    f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")  # Append new log entry
+                    # Ensure we are writing bytes (using .encode())
+                    f.write((",\n" + json.dumps(log_data, indent=2) + "\n]").encode('utf-8'))
                 else:
-                    unlock_file(f)  # Release the lock before renaming
-                    renamed_file = rename_with_timestamp(DEFAULT_JSONLOG_FILE)
-                    with open(DEFAULT_JSONLOG_FILE, 'w') as new_f:
-                        new_f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
+                    logger.warning(f"File {DEFAULT_JSONLOG_FILE} is not valid or too small. Initializing or re-initializing file.")
+                    f.truncate(0)  # Clear the file contents
+                    # Ensure we are writing bytes (using .encode())
+                    f.write(("[\n" + json.dumps(log_data, indent=2) + "\n]").encode('utf-8'))
             except Exception as e:
-                # Write error message to a specific log file
+                logger.error(f"Error while writing to the log file {DEFAULT_JSONLOG_FILE}: {str(e)}")
                 with open('/var/log/abuseipdb-invalid-log.log', 'a') as error_f:
                     error_f.write(f'{datetime.datetime.now()}: Error while writing to the log file {DEFAULT_JSONLOG_FILE}: {str(e)}\n')
             finally:
                 unlock_file(f)  # Always ensure to release the lock
+                logger.debug(f"File {DEFAULT_JSONLOG_FILE} unlocked after writing.")
 
+        logger.debug(f"Not Sent Ports: {ports}")
+        logger.debug(f"Not Sent In/Out: {inOut}")
+        logger.debug(f"Not Sent Message: {masked_message}")
+        logger.debug(f"Not Sent Logs: {masked_logs}")
+        logger.debug(f"Not Sent Trigger: {trigger}")
+        logger.debug(f"DEBUG MODE: No actual report sent. JSON data saved to '{DEFAULT_JSONLOG_FILE}'.")
         print("Not Sent Ports:", ports)
         print("Not Sent In/Out:", inOut)
         print("Not Sent Message:", masked_message)
@@ -622,6 +657,7 @@ if DEBUG:
         print("Not Sent Trigger:", trigger, '\n')
         print("DEBUG MODE: No actual report sent. JSON data saved to '{}'.".format(DEFAULT_JSONLOG_FILE))
     else:
+        logger.debug(f"Attempting to write to {args.log_file} file.")
         with open(args.log_file, 'a') as f:
             f.write("############################################################################\n")
             f.write("Version: {}\n".format(VERSION))
@@ -641,6 +677,12 @@ if DEBUG:
             f.write("Trigger: {}\n".format(trigger))
             f.write("############################################################################\n")
             f.write("--------\n")
+        logger.debug(f"Not Sent Ports: {ports}")
+        logger.debug(f"Not Sent In/Out: {inOut}")
+        logger.debug(f"Not Sent Message: {masked_message}")
+        logger.debug(f"Not Sent Logs: {masked_logs}")
+        logger.debug(f"Not Sent Trigger: {trigger}")
+        logger.debug(f"DEBUG MODE: No actual report sent. Data saved to '{args.log_file}'.")
         print("Not Sent Ports:", ports)
         print("Not Sent In/Out:", inOut)
         print("Not Sent Message:", masked_message)
@@ -649,6 +691,11 @@ if DEBUG:
         print("DEBUG MODE: No actual report sent. Data saved to '{}'.".format(args.log_file))
 else:
     current_timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    logger.debug(f"Sending Ports: {ports}")
+    logger.debug(f"Sending In/Out: {inOut}")
+    logger.debug(f"Sending Message: {masked_message}")
+    logger.debug(f"Sending Logs: {masked_logs}")
+    logger.debug(f"Sending Trigger: {trigger}")
     print("Sending Ports:", ports)
     print("Sending In/Out:", inOut)
     print("Sending Message:", masked_message)
@@ -656,22 +703,31 @@ else:
     print("Sending Trigger:", trigger, '\n')
     # Load and clean the cache
     cache = load_cache()
+    if not cache:
+        save_cache(cache)
+    logger.debug("Loaded cache: %s", cache)
     print("Loaded cache:", cache)
     cache = clean_cache(cache)
+    logger.debug("Current cache: %s", cache)
     print("Current cache:", cache)
 
     if not (IGNORE_CLUSTER_SUBMISSIONS and contains_cluster_member_pattern(message)):
         # Define IP
         ip = args.arguments[0]
+        logger.debug(f"Processing IP: {ip}")
     
         # If IP is in exclusions, do not report
         if ip in excluded_ips:
             print("IP: {} is in exclusions. Skipping report.".format(ip))
+            logger.info(f"IP: {ip} is in exclusions. Skipping report.")
             sys.exit()
         # Check if the IP address is in the cache before sending the report
         if not ip_in_cache(args.arguments[0], cache):
+            logger.debug(f"IP {ip} not found in cache. Preparing to send report.")
             response = requests.post(url, headers=headers, params=querystring)
             decodedResponse = json.loads(response.text)
+            logger.info(f"Reported IP {ip} with categories {categories} and comment: {comment}")
+            logger.debug(f"API response: {decodedResponse}")
 
             if LOG_API_REQUEST:
                 log_data = {
@@ -688,32 +744,45 @@ else:
                 }
 
                 if JSON_APILOG_FORMAT:
-                    with open(DEFAULT_JSONAPILOG_FILE, 'a') as f:  # Open the file in append mode
+                    logger.debug(f"Attempting to write to {DEFAULT_JSONAPILOG_FILE} in JSON format.")
+                    with open(DEFAULT_JSONAPILOG_FILE, 'ab+') as f:  # Open the file in append + read mode in BINARY
                         lock_file(f)
+                        logger.debug(f"File {DEFAULT_JSONAPILOG_FILE} locked for writing.")
+                        
+                        # Check the size of the file
+                        f.seek(0, os.SEEK_END)  # Move to end of file
+                        filesize = f.tell()  # Get current position, which is the filesize
+                        
                         try:
-                            if is_log_file_valid(DEFAULT_JSONAPILOG_FILE):
-                                f.seek(-2, os.SEEK_END)  # Remove the last closing bracket ']'
+                            if filesize >= 2 and is_log_file_valid(DEFAULT_JSONAPILOG_FILE):
+                                logger.debug(f"File {DEFAULT_JSONAPILOG_FILE} is valid. Appending log entry.")
+                                f.seek(-2, os.SEEK_END)  # Move two bytes back from end to overwrite the closing bracket ']'
                                 f.truncate()
-                                f.write(",\n" + json.dumps(log_data, indent=2) + "\n]")  # Append new log entry
+                                # Ensure we are writing bytes (using .encode())
+                                f.write((",\n" + json.dumps(log_data, indent=2) + "\n]").encode('utf-8'))
                             else:
-                                unlock_file(f)  # Release the lock before renaming
-                                renamed_file = rename_with_timestamp(DEFAULT_JSONAPILOG_FILE)
-                                with open(DEFAULT_JSONAPILOG_FILE, 'w') as new_f:
-                                    new_f.write("[\n" + json.dumps(log_data, indent=2) + "\n]")
+                                logger.warning(f"File {DEFAULT_JSONAPILOG_FILE} is not valid or too small. Initializing or re-initializing file.")
+                                f.truncate(0)  # Clear the file contents
+                                # Ensure we are writing bytes (using .encode())
+                                f.write(("[\n" + json.dumps(log_data, indent=2) + "\n]").encode('utf-8'))
                         except Exception as e:
-                            # Write error message to a specific log file
+                            logger.error(f"Error while writing to the log file {DEFAULT_JSONAPILOG_FILE}: {str(e)}")
                             with open('/var/log/abuseipdb-invalid-log.log', 'a') as error_f:
                                 error_f.write(f'{datetime.datetime.now()}: Error while writing to the log file {DEFAULT_JSONAPILOG_FILE}: {str(e)}\n')
                         finally:
                             unlock_file(f)  # Always ensure to release the lock
+                            logger.debug(f"File {DEFAULT_JSONAPILOG_FILE} unlocked after writing.")
                 else:
+                    ip = args.arguments[0]
+                    logger.debug(f"Processing IP: {ip}")
+                    logger.debug(f"Attempting to write to {DEFAULT_APILOG_FILE} file.")
                     with open(DEFAULT_APILOG_FILE, 'a') as f:
                         f.write("############################################################################\n")
                         f.write("Version: {}\n".format(VERSION))
                         f.write("API Request Sent:\n")
                         f.write("URL: {}\n".format(url))
                         f.write("Headers: {}\n".format(headers))
-                        f.write("IP: {}\n".format(args.arguments[0]))
+                        f.write("IP: {}\n".format(ip))
                         f.write("IPencoded: {}\n".format(url_encoded_ip))
                         f.write("Categories: {}\n".format(categories))
                         f.write("Comment: {}\n".format(masked_comment))
@@ -724,6 +793,7 @@ else:
 
             if response.status_code == 200:
                 print(json.dumps(decodedResponse['data'], sort_keys=True, indent=4))
+                logger.debug(f"API Response Data: {json.dumps(decodedResponse['data'], sort_keys=True, indent=4)}")
                 # Update the cache with the new IP address and timestamp, then save it
                 update_cache(args.arguments[0], cache)
                 save_cache(cache)
@@ -731,14 +801,21 @@ else:
             if response.status_code == 200:
                 print(json.dumps(decodedResponse['data'], sort_keys=True, indent=4))
             elif response.status_code == 429:
+                logger.error(json.dumps(decodedResponse['errors'][0], sort_keys=True, indent=4))
                 print(json.dumps(decodedResponse['errors'][0], sort_keys=True, indent=4))
             elif response.status_code == 422:
+                logger.error(json.dumps(decodedResponse['errors'][0], sort_keys=True, indent=4))
                 print(json.dumps(decodedResponse['errors'][0], sort_keys=True, indent=4))
             elif response.status_code == 302:
+                logger.warning('Unsecure protocol requested. Redirected to HTTPS.')
                 print('Unsecure protocol requested. Redirected to HTTPS.')
             elif response.status_code == 401:
+                logger.error(json.dumps(decodedResponse['errors'][0], sort_keys=True, indent=4))
                 print(json.dumps(decodedResponse['errors'][0], sort_keys=True, indent=4))
             else:
+                logger.error('Unexpected server response. Status Code: {}'.format(response.status_code))
                 print('Unexpected server response. Status Code: {}'.format(response.status_code))
         else:
+            logger.warning("IP address already reported within the last 15 minutes. Skipping submission.")
             print("IP address already reported within the last 15 minutes. Skipping submission.")
+logger.info("Script completed.")
