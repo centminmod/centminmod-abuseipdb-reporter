@@ -49,7 +49,7 @@ import datetime
 import fcntl
 from urllib.parse import quote
 
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -72,6 +72,7 @@ DEFAULT_LOG_FILE = '/var/log/abuseipdb-reporter-debug.log'
 DEFAULT_JSONLOG_FILE = '/var/log/abuseipdb-reporter-debug-json.log'
 DEFAULT_APILOG_FILE = '/var/log/abuseipdb-reporter-api.log'
 DEFAULT_JSONAPILOG_FILE = '/var/log/abuseipdb-reporter-api-json.log'
+DEBUG_ALL_LOG_FILE = '/var/log/abuseipdb-detailed.log'
 
 # Local IP submission cache
 CACHE_FILE = "ip_cache.json"
@@ -115,7 +116,7 @@ LF_IMAPD_CATEGORY = '18'
 LF_POP3D_CATEGORY = '18'
 
 log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-log_file = "/var/log/abuseipdb-detailed.log"
+log_file = DEBUG_ALL_LOG_FILE
 
 # Set up the logger
 logger = logging.getLogger('AbuseIPDBReporter')
