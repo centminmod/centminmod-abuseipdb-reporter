@@ -49,7 +49,7 @@ import datetime
 import fcntl
 from urllib.parse import quote
 
-VERSION = "0.5.3"
+VERSION = "0.5.4"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -126,7 +126,7 @@ file_handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=10*1024*1
 file_handler.setFormatter(log_formatter)
 logger.addHandler(file_handler)
 
-logger.info("Script started.")
+logger.info(f"Script started ({VERSION}).")
 
 # Get the absolute path of the script
 script_dir = os.path.dirname(os.path.abspath(__file__))
