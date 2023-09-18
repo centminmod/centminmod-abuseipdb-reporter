@@ -25,6 +25,7 @@ This guide will show you how to set up CSF Firewall so that attempted intrusions
   * [JSON log format](#json-log-format)
     * [Parsing JSON formatted logs](#parsing-json-formatted-logs)
       * [Convert JSON Format Back To Non-JSON Format](#convert-json-format-back-to-non-json-format)
+* [Troubleshooting](#Troubleshooting)
 * [CSF Cluster Mode](#csf-cluster-mode)
   * [JSON log format CSF Cluster](#json-log-format-csf-cluster)
 * [AbuseIPDB API Submissions](#abuseipdb-api-submissions)
@@ -586,6 +587,65 @@ For converting all JSON log entries to Non-JSON format, remove the `tail -1` fil
 
 ```
 cat /var/log/abuseipdb-reporter-debug-json.log | jq -c '.[]' | jq -r '"############################################################################\nVersion: " + .sentVersion + "\nDEBUG MODE: data intended to be sent to AbuseIPDB\nURL: " + .sentURL + "\nHeaders: " + (.sentHeaders | tostring) + "\nIP: " + .sentIP + "\nIPencoded: " + .sentIPencoded + "\nCategories: " + (.sentCategories | tostring) + "\nComment: " + .sentComment + "\n---------------------------------------------------------------------------\nDEBUG MODE: CSF passed data not sent to AbuseIPDB\nPorts: " + .notsentPorts + "\nIn/Out: " + .notsentInOut + "\nMessage: " + .notsentMessage + "\nLogs: " + .notsentLogs + "\nTrigger: " + .notsentTrigger + "\n############################################################################\n--------"'
+```
+
+## Troubleshooting
+
+From `abuseipdb-reporter.py 0.5.2` or higher, an additional `DEBUG_ALL_LOG_FILE = '/var/log/abuseipdb-detailed.log'` debug log is generated each time the script is ran. This was required to figure out where in the script, premature exits or crashes occurred that prevented logging or API submissions from happening. 
+
+Below is an example entry logged in `/var/log/abuseipdb-detailed.log` following the script's flow of execution for CSF Firewall's `BLOCK_REPORT` passed blocked IP `43.131.59.246` from `Script started` to `Script completed`. The entries include:
+
+* Reading the `/home/centminmod-abuseipdb-reporter/abuseipdb-reporter.ini` settings override file and it's contents to make sure the script properly detects override variables.
+* At `2023-09-18 04:01:06,817` it's showing you the data passed from `BLOCK_REPORT` to the script - including the not yet masked `hostname` etc.
+* At `2023-09-18 04:01:06,830` it's showing the constructed query string JSON data that will be sent to AbuseIPDB API database eventually.
+* At `2023-09-18 04:01:06,831` it's showing the data - after masking operations, that will be sent to AbuseIPDB API database and logged.
+* At `2023-09-18 04:01:06,832` is the cache handling routines. It includes picking up on `Failed to decode JSON from cache file` error due to incorrect or corrupted cache file format and automatically re-creating the cache file.
+* At `2023-09-18 04:01:07,069` is what was sent to AbuseIPDB API database and the actual JSON API response data that AbuseIPDB API returned with a `abuseConfidenceScore` of 100.
+* At `2023-09-18 04:01:07,070` is just updating cache and script completion entry.
+
+```
+2023-09-18 04:01:06,815 - INFO - Script started.
+2023-09-18 04:01:06,816 - INFO - Read /home/centminmod-abuseipdb-reporter/abuseipdb-reporter.ini.
+2023-09-18 04:01:06,816 - DEBUG - DEBUG set to False from .ini file
+2023-09-18 04:01:06,816 - DEBUG - JSON_LOG_FORMAT set to False from .ini file
+2023-09-18 04:01:06,816 - DEBUG - IGNORE_CLUSTER_SUBMISSIONS set to True from .ini file
+2023-09-18 04:01:06,816 - DEBUG - API_KEY set from .ini file
+2023-09-18 04:01:06,816 - DEBUG - JSON_APILOG_FORMAT set to False from .ini file
+2023-09-18 04:01:06,817 - DEBUG - Received Ports: *
+2023-09-18 04:01:06,817 - DEBUG - Received In/Out: inout
+2023-09-18 04:01:06,817 - DEBUG - Received Message: (sshd) Failed SSH login from 43.131.59.246 (DE/Germany/-): 5 in the last 3600 secs
+2023-09-18 04:01:06,817 - DEBUG - Received Logs: Sep 18 03:56:36 hostname sshd[1861935]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=43.131.59.246  user=root
+Sep 18 03:56:38 hostname sshd[1861935]: Failed password for root from 43.131.59.246 port 34148 ssh2
+Sep 18 03:58:59 hostname sshd[1861958]: Invalid user dev2 from 43.131.59.246 port 51942
+Sep 18 03:59:01 hostname sshd[1861958]: Failed password for invalid user dev2 from 43.131.59.246 port 51942 ssh2
+Sep 18 04:00:46 hostname sshd[1862001]: Invalid user manager from 43.131.59.246 port 36488
+
+2023-09-18 04:01:06,817 - DEBUG - Received Trigger: LF_SSHD
+2023-09-18 04:01:06,830 - DEBUG - Constructed querystring: {'ip': '43.131.59.246', 'categories': '22', 'comment': '(sshd) Failed SSH login from 43.131.59.246 (DE/Germany/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Sep 18 03:56:36 sshd[1861935]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=43.131.59.246  user=[USERNAME]'}
+2023-09-18 04:01:06,831 - DEBUG - Sending Ports: *
+2023-09-18 04:01:06,831 - DEBUG - Sending In/Out: inout
+2023-09-18 04:01:06,831 - DEBUG - Sending Message: (sshd) Failed SSH login from 43.131.59.246 (DE/Germany/-): 5 in the last 3600 secs
+2023-09-18 04:01:06,831 - DEBUG - Sending Logs: Sep 18 03:56:36 sshd[1861935]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=43.131.59.246  user=[USERNAME]
+2023-09-18 04:01:06,831 - DEBUG - Sending Trigger: LF_SSHD
+2023-09-18 04:01:06,831 - ERROR - Failed to decode JSON from cache file. Returning an empty cache.
+2023-09-18 04:01:06,831 - ERROR - Corrupted cache file detected. Recreating it.
+2023-09-18 04:01:06,832 - DEBUG - Loaded cache: {}
+2023-09-18 04:01:06,832 - DEBUG - Cleaned cache: {}
+2023-09-18 04:01:06,832 - DEBUG - Current cache: {}
+2023-09-18 04:01:06,832 - DEBUG - Processing IP: 43.131.59.246
+2023-09-18 04:01:06,832 - DEBUG - IP in cache: False
+2023-09-18 04:01:06,833 - DEBUG - IP 43.131.59.246 not found in cache. Preparing to send report.
+2023-09-18 04:01:07,069 - INFO - Reported IP 43.131.59.246 with categories 22 and comment: (sshd) Failed SSH login from 43.131.59.246 (DE/Germany/-): 5 in the last 3600 secs; Ports: *; Direction: inout; Trigger: LF_SSHD; Logs: Sep 18 03:56:36 sshd[1861935]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=43.131.59.246  user=[USERNAME]
+2023-09-18 04:01:07,069 - DEBUG - API response: {'data': {'ipAddress': '43.131.59.246', 'abuseConfidenceScore': 100}}
+2023-09-18 04:01:07,069 - DEBUG - Processing IP: 43.131.59.246
+2023-09-18 04:01:07,069 - DEBUG - Attempting to write to /var/log/abuseipdb-reporter-api.log file.
+2023-09-18 04:01:07,069 - DEBUG - API Response Data: {
+    "abuseConfidenceScore": 100,
+    "ipAddress": "43.131.59.246"
+}
+2023-09-18 04:01:07,070 - DEBUG - Updated cache: {'43.131.59.246': 1695024067.070024}
+2023-09-18 04:01:07,070 - DEBUG - Saved the updated cache to file.
+2023-09-18 04:01:07,070 - INFO - Script completed.
 ```
 
 ## CSF Cluster Mode

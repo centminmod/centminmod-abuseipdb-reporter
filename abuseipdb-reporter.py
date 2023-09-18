@@ -49,7 +49,7 @@ import datetime
 import fcntl
 from urllib.parse import quote
 
-VERSION = "0.5.2"
+VERSION = "0.5.3"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -184,6 +184,10 @@ if config.has_option('settings', 'JSON_APILOG_FORMAT'):
 if config.has_option('settings', 'DEFAULT_JSONAPILOG_FILE'):
     DEFAULT_JSONAPILOG_FILE = config.get('settings', 'DEFAULT_JSONAPILOG_FILE')
     logger.debug(f"DEFAULT_JSONAPILOG_FILE set to {DEFAULT_JSONAPILOG_FILE} from .ini file")
+
+if config.has_option('settings', 'DEBUG_ALL_LOG_FILE'):
+    DEBUG_ALL_LOG_FILE = config.get('settings', 'DEBUG_ALL_LOG_FILE')
+    logger.debug(f"DEBUG_ALL_LOG_FILE set to {DEBUG_ALL_LOG_FILE} from .ini file")
 
 if config.has_option('settings', 'mask_hostname'):
     mask_hostname = config.get('settings', 'mask_hostname')
