@@ -49,7 +49,7 @@ import datetime
 import fcntl
 from urllib.parse import quote
 
-VERSION = "0.5.4"
+VERSION = "0.5.5"
 # Set the DEBUG and LOG_API_REQUEST variables here (True or False)
 # DEBUG doesn't send to AbuseIPDB. Only logs to file
 # LOG_API_REQUEST, when True, logs API requests to file
@@ -282,6 +282,8 @@ if config.has_option('settings', 'LF_POP3D_CATEGORY'):
     LF_POP3D_CATEGORY = config.get('settings', 'LF_POP3D_CATEGORY')
     logger.debug(f"LF_POP3D_CATEGORY set to {LF_POP3D_CATEGORY} from .ini file")
 
+FULL_CACHE_PATH = os.path.join(script_dir, CACHE_FILE)
+
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='AbuseIPDB reporter script.')
 parser.add_argument('-log', dest='log_file', default=DEFAULT_LOG_FILE, help='Path to the log file.')
@@ -355,9 +357,10 @@ def load_excluded_ips(filename):
         return set(line.strip() for line in f)
 
 def load_cache():
-    if os.path.isfile(CACHE_FILE):
-        with open(CACHE_FILE, 'r') as f:
+    if os.path.isfile(FULL_CACHE_PATH):
+        with open(FULL_CACHE_PATH, 'r') as f:
             try:
+                logger.debug(f"Reading cache file: {FULL_CACHE_PATH}")
                 data = json.load(f)
                 logger.debug("Loaded cache data before conversion: %s", data)
                 print("Loaded cache data before conversion:", data)
@@ -370,14 +373,14 @@ def load_cache():
                 logger.error("Failed to decode JSON from cache file. Returning an empty cache.")
                 logger.error("Corrupted cache file detected. Recreating it.")
                 # Clear or recreate the cache file
-                with open(CACHE_FILE, 'w') as f:
+                with open(FULL_CACHE_PATH, 'w') as f:
                     f.write("{}")
                 return {}
     else:
         return {}
 
 def save_cache(cache):
-    with open(CACHE_FILE, 'w') as f:
+    with open(FULL_CACHE_PATH, 'w') as f:
         json.dump(cache, f)
         f.write('\n')  # Ensure the file ends with a newline
 
@@ -398,7 +401,7 @@ def update_cache(ip, cache):
     cache[ip] = time.time()
     logger.debug("Updated cache: %s", cache)
     save_cache(cache)
-    logger.debug("Saved the updated cache to file.")
+    logger.debug(f"Saved the updated cache to file {FULL_CACHE_PATH}")
 
 def get_all_public_ips():
     try:
@@ -423,10 +426,11 @@ public_ips = get_all_public_ips()
 # Check for exclusion file that lists one IP address per line
 # for skipping API submissions
 exclusion_file = 'abuseipdb-exclusions.txt'
+FULL_EXCLUSION_PATH = os.path.join(script_dir, exclusion_file)
 excluded_ips = set()
 
-if os.path.exists(exclusion_file):
-    excluded_ips = load_excluded_ips(exclusion_file)
+if os.path.exists(FULL_EXCLUSION_PATH):
+    excluded_ips = load_excluded_ips(FULL_EXCLUSION_PATH)
 
 # Get the values from the csf.conf file
 with open('/etc/csf/csf.conf') as f:
