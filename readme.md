@@ -50,14 +50,43 @@ Centmin Mod users on CentOS 7.x, can install Python 3.x via `addons/python36_ins
 
 ```
 /usr/local/src/centminmod/addons/python36_install.sh
-pip3 install requests
+yum -y install python36-requests
+```
+will install:
+```
+yum list installed python3 python3-pip python36-requests -q | tr -s ' '
+Installed Packages
+python3.x86_64 3.6.8-21.el7_9 @updates
+python3-pip.noarch 9.0.3-8.el7 @base 
+python36-requests.noarch 2.14.2-2.el7 @epel
 ```
 
-Or if on EL8+, can install Python 3 via
+Or if on EL8, can install Python 3 via
 
 ```
-yum -y install python3
-pip3 install requests
+yum -y install python36 python3-pip python3-requests
+```
+will install:
+```
+yum list installed python36 python3-pip python3-requests -q | tr -s ' '
+Installed Packages
+python3-pip.noarch 9.0.3-23.el8 @appstream
+python3-requests.noarch 2.20.0-3.el8_8 @baseos 
+python36.x86_64 3.6.8-38.module_el8.9.0+3700+efebe9fd @appstream
+```
+
+Or if on EL9, can install Python 3 via
+
+```
+yum -y install python3 python3-pip python3-requests
+```
+will install:
+```
+yum list installed python3 python3-pip python3-requests -q | tr -s ' '
+Installed Packages
+python3.x86_64 3.9.18-1.el9_3.1 @baseos 
+python3-pip.noarch 21.2.3-7.el9 @appstream
+python3-requests.noarch 2.25.1-7.el9_2 @baseos 
 ```
 
 ## Setup
